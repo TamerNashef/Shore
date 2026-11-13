@@ -33,7 +33,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Rubik",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
 :lang(ar) body,body:lang(ar){font-family:"IBM Plex Sans Arabic","Rubik",system-ui,Tahoma,sans-serif}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
-main{max-width:640px;margin:0 auto;padding:12px 14px 40px}
+main{max-width:640px;margin:0 auto;padding:12px 14px 120px}
 header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 4px}
 h1{font-size:1.45rem;font-weight:800;margin:0;letter-spacing:-.01em}
 .tag{color:var(--muted);font-size:.9rem;margin:0 0 12px}
@@ -178,6 +178,26 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
 #viewer img{max-width:100%;max-height:72vh;border-radius:10px}
 #viewer .vb{display:flex;gap:10px;margin-top:14px}
 #viewer .btn{color:#fff;border-color:#fff;background:transparent}
+.fishpic{display:block;max-width:100%;height:auto}
+.fish{display:grid;grid-template-columns:100px 1fr;gap:10px;align-items:start}
+.fish .pic{padding-top:2px}
+.fg2{border-top:1px solid var(--line);padding:14px 0}
+.fg2 .pic{max-width:300px;margin:0 auto 8px}
+.fg2 h3{margin:0 0 2px;font-size:1.02rem}
+.fg2 h3 i{color:var(--muted);font-size:.8rem;font-weight:400}
+.fg2 .id{font-size:.92rem;margin:6px 0}
+.fg2 .small{margin-top:2px}
+.fg2 .note{font-size:.84rem;color:var(--red);margin-top:4px}
+.fg2 a{color:var(--sea)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:flex;justify-content:center;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar button{flex:1;max-width:160px;font:inherit;font-size:.78rem;font-weight:600;background:none;border:0;color:var(--muted);padding:8px 2px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:58px}
+.tabbar button span{font-size:1.3rem;line-height:1}
+.tabbar button[aria-selected="true"]{color:var(--sea);box-shadow:inset 0 3px 0 var(--sea)}
+body[data-tab="today"] [data-tab]:not([data-tab="today"]),body[data-tab="map"] [data-tab]:not([data-tab="map"]),body[data-tab="log"] [data-tab]:not([data-tab="log"]),body[data-tab="guide"] [data-tab]:not([data-tab="guide"]){display:none}
+.spotbar{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.spotbar label{font-size:.85rem;color:var(--muted);white-space:nowrap}
+.spotbar select{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:42px}
+#fishPic{margin-top:6px;max-width:130px}
 [hidden]{display:none!important}
 @media (max-width:380px){.mapwrap{grid-template-columns:120px 1fr}.map svg{width:120px}.ring{width:100px;height:100px}}
 @media (prefers-reduced-motion:no-preference){.pulse{animation:pl 1.8s ease-out infinite;transform-origin:center;transform-box:fill-box}@keyframes pl{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(2.2)}}}
@@ -197,7 +217,7 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
   <div class="status"><span id="upd"></span><button class="btn" id="refresh"></button></div>
 
   <div id="app" hidden>
-    <section class="panel">
+    <section class="panel" data-tab="map">
       <h2 id="tMap"></h2>
       <div id="lmap" class="lmap" dir="ltr" hidden></div>
       <div class="maptools"><button class="btn" id="gpsBtn"></button><button class="btn" id="addSpotBtn"></button><button class="btn" id="layerBtn" hidden></button></div>
@@ -207,29 +227,32 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
       <div id="alerts"></div>
     </section>
 
-    <section class="panel" id="scorePanel"></section>
+    <div class="panel spotbar" data-tab="today"><label for="spotSel" id="spotSelL"></label><select id="spotSel"></select></div>
+    <section class="panel" id="scorePanel" data-tab="today"></section>
 
-    <section class="panel">
+    <section class="panel" data-tab="today">
       <h2 id="tTimeline"></h2>
       <div class="selinfo"><span id="selLbl"></span><button class="btn" id="backNow"></button></div>
       <div id="timeline" data-chart></div>
       <div class="legend" id="scoreLegend"></div>
     </section>
 
-    <section class="panel" id="logPanel"></section>
-    <section class="panel" id="moonPanel"></section>
-    <section class="panel" id="tidePanel"></section>
-    <section class="panel" id="windPanel"></section>
-    <section class="panel" id="presPanel"></section>
-    <section class="panel" id="wavePanel"></section>
-    <section class="panel" id="clarPanel"></section>
-    <section class="panel" id="fishPanel"></section>
-    <section class="panel" id="rigPanel"></section>
-    <section class="panel" id="rulesPanel"></section>
+    <section class="panel" id="logPanel" data-tab="log"></section>
+    <section class="panel" id="moonPanel" data-tab="today"></section>
+    <section class="panel" id="tidePanel" data-tab="today"></section>
+    <section class="panel" id="windPanel" data-tab="today"></section>
+    <section class="panel" id="presPanel" data-tab="today"></section>
+    <section class="panel" id="wavePanel" data-tab="today"></section>
+    <section class="panel" id="clarPanel" data-tab="today"></section>
+    <section class="panel" id="fishPanel" data-tab="today"></section>
+    <section class="panel" id="fishGuide" data-tab="guide"></section>
+    <section class="panel" id="rigPanel" data-tab="guide"></section>
+    <section class="panel" id="rulesPanel" data-tab="guide"></section>
   </div>
   <section class="panel" id="moonOffline" hidden></section>
-  <section class="panel sci" id="sciPanel"></section>
+  <section class="panel sci" id="sciPanel" data-tab="guide"></section>
 </main>
+<nav class="tabbar" id="tabbar" role="tablist" hidden></nav>
 <div id="viewer" hidden></div>
 
 <script>
@@ -550,12 +573,81 @@ ar:{rulesT:"القوانين والأحجام الدنيا",rules:["لا حاج�
  shareCatch:(f,n,len,sp,dt)=>`🎣 اصطدت ${f}${n>1?` × ${n}`:""}${len?` (${len} سم)`:""} في ${sp}، ${dt}.`,shareNo:(sp,dt)=>`🎣 خرجت للصيد في ${sp}، ${dt} – بلا حظ هذه المرة.`}};
 Object.keys(T3).forEach(l=>Object.assign(T[l],T3[l]));
 
+const FDRAW={
+ "Siganus rivulatus":{p:"deep",h:.42,c:["#6E6B4E","#D3CFAE","#8C8763"],tail:"emarg",d:[[38,160,12,1]],a:[[100,160,9,1]],m:["wavy"],ex:31,er:5.5,mouth:"small"},
+ "Diplodus sargus":{p:"deep",h:.46,c:["#7F8C95","#F2F4F5","#A9B4BC"],tail:"fork",d:[[40,152,13,1]],a:[[112,155,9,1]],m:["bars9","saddle"],ex:32,er:6.5,mouth:"small"},
+ "Sillago sihama":{p:"slim",h:.2,c:["#BFA97E","#F4EEDF","#D2C3A0"],tail:"emarg",d:[[58,86,10,1],[96,160,7,0]],a:[[100,160,6,0]],m:[],ex:26,er:4,mouth:"small",snout:"point"},
+ "Mugil cephalus":{p:"torp",h:.25,c:["#4C6274","#E9EEF1","#7F92A0"],tail:"fork",d:[[70,92,10,1],[126,146,8,0]],a:[[118,146,7,0]],m:["stripes"],ex:24,er:5,mouth:"small"},
+ "Lithognathus mormyrus":{p:"torp",h:.33,c:["#A3ADB3","#F4F5F6","#BCC5CB"],tail:"fork",d:[[46,156,11,1]],a:[[116,156,8,1]],m:["bars14"],ex:32,er:5,mouth:"small",snout:"point"},
+ "Sparus aurata":{p:"deep",h:.42,c:["#788792","#EEF1F3","#97A3AC"],tail:"fork",d:[[42,154,12,1]],a:[[114,156,9,1]],m:["gold","oper","lines"],ex:32,er:6,mouth:"small"},
+ "Dicentrarchus labrax":{p:"torp",h:.27,c:["#55677A","#EEF2F4","#8495A3"],tail:"fork2",d:[[62,96,12,1],[108,150,10,0]],a:[[118,150,8,1]],m:["operB"],ex:28,er:5,mouth:"big"},
+ "Pomatomus saltatrix":{p:"torp",h:.27,c:["#2E6E79","#E3EDEF","#5A8C94"],tail:"fork",d:[[60,84,8,1],[98,160,9,0]],a:[[106,158,8,0]],m:["pec"],ex:28,er:5,mouth:"big"},
+ "Lichia amia":{p:"torp",h:.36,c:["#46525E","#EDF0F2","#77838E"],tail:"deep",d:[[54,72,6,1],[84,160,13,0]],a:[[96,160,12,0]],m:["wavyLL"],ex:30,er:5.5,mouth:"mid"},
+ "Sphyraena spp.":{p:"slim",h:.14,c:["#66767E","#EEF2F3","#8C9AA1"],tail:"fork",d:[[72,90,9,1],[132,146,7,0]],a:[[130,146,6,0]],m:["yellow","fbars"],ex:32,er:4,mouth:"barra",snout:"point"}};
+const PROF={deep:[[0,.04],[.025,.36],[.07,.6],[.18,.88],[.36,1],[.56,.9],[.76,.55],[.91,.25],[1,.19]],
+ torp:[[0,.05],[.025,.4],[.07,.64],[.2,.93],[.38,1],[.6,.86],[.8,.5],[.93,.25],[1,.2]],
+ slim:[[0,.04],[.04,.4],[.1,.62],[.25,.92],[.45,1],[.65,.92],[.85,.55],[.95,.32],[1,.26]]};
+function profAt(pr,t){for(let i=1;i<pr.length;i++){if(t<=pr[i][0]){const [t0,v0]=pr[i-1],[t1,v1]=pr[i],u=(t-t0)/(t1-t0),w=(1-Math.cos(Math.PI*u))/2;return v0+(v1-v0)*w}}return pr[pr.length-1][1]}
+let FSEQ=0;
+function fishSVG(sci,width){
+ const f=FDRAW[sci];if(!f)return"";const X0=14,X1=182,Hh=f.h*100,cy=Hh+22,pr=PROF[f.p].slice();
+ if(f.snout==="point"){pr[0]=[0,.02];pr[1]=[pr[1][0]*1.6,pr[1][1]*.7]}
+ const hh=x=>Hh*profAt(pr,Math.min(1,Math.max(0,(x-X0)/(X1-X0))));
+ const top=x=>cy-hh(x),bot=x=>cy+hh(x)*.9;
+ const up=[],dn=[];for(let x=X0;x<=X1;x+=2){up.push(`${x},${top(x).toFixed(1)}`);dn.unshift(`${x},${bot(x).toFixed(1)}`)}
+ const body=`M${up.join(" L")} L${dn.join(" L")} Z`;
+ const id="fg"+(++FSEQ),[ct,cb,cf]=f.c,ped=hh(X1),tH=Math.max(30,Math.min(70,Hh*1.25));
+ const notch={fork:X1+13,fork2:X1+20,deep:X1+8,emarg:X1+24}[f.tail];
+ const tail=`M${X1-2},${(cy-ped).toFixed(1)} L${X1+32},${(cy-tH/2).toFixed(1)} L${notch},${cy} L${X1+32},${(cy+tH/2).toFixed(1)} L${X1-2},${(cy+ped*.9).toFixed(1)} Z`;
+ const fin=(arr,isTop)=>arr.map(([a,b,h,sp])=>{const base=x=>isTop?top(x)+1:bot(x)-1,sg=isTop?-1:1,pts=[];
+   if(sp){for(let x=a;x<=b;x+=5){const k=1-.55*(x-a)/(b-a);pts.push(`${x},${(base(x)+sg*h*k*((x-a)%10<5?1:.6)).toFixed(1)}`)}}
+   else{const xa=a+(b-a)*.18;pts.push(`${xa.toFixed(1)},${(base(xa)+sg*h).toFixed(1)}`,`${b},${(base(b)+sg*h*.35).toFixed(1)}`)}
+   return `<path d="M${a},${base(a).toFixed(1)} L${pts.join(" L")} L${b},${base(b).toFixed(1)} Z" fill="${cf}" opacity=".9"/>`}).join("");
+ let mk="";const has=k=>f.m.includes(k);
+ const bars=(n,op)=>{let s="";for(let i=0;i<n;i++){const x=48+i*(130/n);s+=`<rect x="${x.toFixed(1)}" y="0" width="${n>10?2.6:3.6}" height="${cy*2+20}" fill="#2B333A" opacity="${op}"/>`}return s};
+ if(has("bars9"))mk+=bars(9,.28);if(has("bars14"))mk+=bars(14,.4);if(has("fbars"))mk+=bars(10,.14);
+ if(has("saddle"))mk+=`<ellipse cx="170" cy="${cy}" rx="7" ry="${(hh(170)*1.1).toFixed(1)}" fill="#151A1E"/>`;
+ if(has("stripes")||has("lines"))[-.45,-.15,.15,.45].forEach(k=>mk+=`<line x1="30" x2="182" y1="${(cy+Hh*k).toFixed(1)}" y2="${(cy+Hh*k*.6).toFixed(1)}" stroke="#2B333A" stroke-width="${has("lines")?1:1.6}" opacity="${has("lines")?.18:.32}"/>`);
+ if(has("wavy"))[.25,.5,.72].forEach(k=>{const y0=cy+Hh*k;let d=`M40 ${y0.toFixed(1)}`;for(let x=50;x<=170;x+=10)d+=` Q${x-5} ${(y0+((x/10)%2?3:-3)).toFixed(1)} ${x} ${y0.toFixed(1)}`;mk+=`<path d="${d}" fill="none" stroke="#E2C36B" stroke-width="1.6" opacity=".9"/>`});
+ if(has("gold"))mk+=`<path d="M${f.ex-7} ${(cy-Hh*.62).toFixed(1)} Q${f.ex+1} ${(cy-Hh*.5).toFixed(1)} ${f.ex+7} ${(cy-Hh*.68).toFixed(1)}" fill="none" stroke="#E9B44C" stroke-width="4" stroke-linecap="round"/>`;
+ if(has("oper"))mk+=`<ellipse cx="50" cy="${(cy-Hh*.42).toFixed(1)}" rx="4" ry="5" fill="#1E2429" opacity=".75"/>`;
+ if(has("operB"))mk+=`<ellipse cx="48" cy="${(cy-Hh*.2).toFixed(1)}" rx="3.5" ry="5" fill="#1E2429" opacity=".55"/>`;
+ if(has("pec"))mk+=`<ellipse cx="54" cy="${(cy+Hh*.12).toFixed(1)}" rx="4" ry="4.5" fill="#111"/>`;
+ if(has("wavyLL")){let d=`M44 ${(cy-Hh*.35).toFixed(1)}`;[[70,cy-Hh*.6,95,cy-Hh*.12],[120,cy+Hh*.25,150,cy+Hh*.02],[170,cy-Hh*.1,182,cy]].forEach(([x1,y1,x2,y2])=>d+=` Q${x1} ${y1.toFixed(1)} ${x2} ${y2.toFixed(1)}`);mk+=`<path d="${d}" fill="none" stroke="#2B333A" stroke-width="2" opacity=".55"/>`}
+ if(has("yellow"))mk+=`<line x1="22" x2="182" y1="${(cy-Hh*.05).toFixed(1)}" y2="${cy}" stroke="#E7C04A" stroke-width="3" opacity=".9"/>`;
+ const gill=`<path d="M46 ${(top(46)+3).toFixed(1)} Q54 ${cy} 46 ${(bot(46)-3).toFixed(1)}" fill="none" stroke="#1E2429" stroke-width="1.2" opacity=".35"/>`;
+ const mouth={small:`<path d="M${X0+1} ${cy+2} l7 1" stroke="#1E2429" stroke-width="1.3"/>`,mid:`<path d="M${X0} ${cy+1} l12 3" stroke="#1E2429" stroke-width="1.4"/>`,big:`<path d="M${X0-1} ${cy} l17 5" stroke="#1E2429" stroke-width="1.6"/>`,
+  barra:`<path d="M${X0-7} ${cy+2} L${X0+3} ${cy-1.5} L${X0+3} ${cy+4} Z" fill="${ct}"/><path d="M${X0-7} ${cy+2} l26 2" stroke="#1E2429" stroke-width="1.3"/>`}[f.mouth];
+ const py=cy+Hh*.18,pect=`<ellipse cx="62" cy="${py.toFixed(1)}" rx="12" ry="4.5" transform="rotate(18 62 ${py.toFixed(1)})" fill="${cf}" opacity=".85"/>`;
+ const pv=Math.max(7,Hh*.3),pelv=`<path d="M70 ${(bot(70)-1).toFixed(1)} l6 ${pv.toFixed(1)} l8 ${(-pv).toFixed(1)} Z" fill="${cf}" opacity=".85"/>`;
+ const ey=cy-Hh*.25,H=cy*2+2;
+ return `<svg viewBox="-10 0 236 ${H.toFixed(0)}" width="${width}" class="fishpic" aria-hidden="true"><defs><linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${ct}"/><stop offset=".55" stop-color="${cb}"/><stop offset="1" stop-color="${cb}"/></linearGradient><clipPath id="${id}c"><path d="${body}"/></clipPath></defs><path d="${tail}" fill="${cf}"/>${fin(f.d,true)}${fin(f.a,false)}${pelv}<path d="${body}" fill="url(#${id}g)" stroke="#2B333A" stroke-opacity=".35"/><g clip-path="url(#${id}c)">${mk}${gill}</g>${pect}${mouth}<circle cx="${f.ex}" cy="${ey.toFixed(1)}" r="${f.er}" fill="#fff" stroke="#2B333A" stroke-width=".8"/><circle cx="${f.ex-1}" cy="${ey.toFixed(1)}" r="${(f.er*.55).toFixed(1)}" fill="#111"/></svg>`;
+}
+
+const FID={
+ "Siganus rivulatus":["Oval, flat body with a small mouth. Olive-grey with thin golden wavy lines on the belly. Sharp, venomous spines on the back and belly fins.","גוף סגלגל ושטוח עם פה קטן. אפור-זיתי עם קווים זהובים דקים וגליים בבטן. קוצים חדים וארסיים בסנפירי הגב והבטן.","جسم بيضوي مسطّح وفم صغير. لون رمادي زيتوني مع خطوط ذهبية رفيعة متموّجة على البطن. أشواك حادة سامة في زعانف الظهر والبطن."],
+ "Diplodus sargus":["Deep silver body with thin dark vertical bars and a big black spot just before the tail.","גוף כסוף וגבוה עם פסים כהים ודקים לרוחב וכתם שחור גדול ממש לפני הזנב.","جسم فضي عريض مع خطوط داكنة رفيعة عمودية وبقعة سوداء كبيرة قبل الذيل مباشرة."],
+ "Sillago sihama":["Long, slim, sandy-silver body with a pointed snout and two back fins. Lives over sand.","גוף ארוך ודק בצבע חול-כסף, חרטום מחודד ושני סנפירי גב. חי מעל חול.","جسم طويل ونحيف بلون رملي فضي، خطم مدبّب وزعنفتان على الظهر. يعيش فوق الرمل."],
+ "Mugil cephalus":["Torpedo shape with a broad, flat head. Grey back and dark lines along the silver sides. Two small back fins far apart.","גוף בצורת טורפדו עם ראש רחב ושטוח. גב אפור וקווים כהים לאורך הצדדים הכסופים. שני סנפירי גב קטנים ורחוקים זה מזה.","شكل طوربيد برأس عريض مسطّح. ظهر رمادي وخطوط داكنة على طول الجانبين الفضيين. زعنفتان صغيرتان على الظهر متباعدتان."],
+ "Lithognathus mormyrus":["Silver with many thin dark vertical stripes (around 14) and a long, pointed snout.","כסוף עם הרבה פסים כהים ודקים לרוחב (כ־14) וחרטום ארוך ומחודד.","فضي مع خطوط عمودية داكنة رفيعة كثيرة (نحو 14) وخطم طويل مدبّب."],
+ "Sparus aurata":["Deep silver body with a gold band between the eyes and a dark spot at the top of the gill cover.","גוף כסוף וגבוה עם פס זהוב בין העיניים וכתם כהה בחלק העליון של מכסה הזימים.","جسم فضي عريض مع شريط ذهبي بين العينين وبقعة داكنة أعلى غطاء الخياشيم."],
+ "Dicentrarchus labrax":["Silver and streamlined, with a big mouth, two separate back fins (the first spiny) and a dark spot on the gill cover.","כסוף ומוארך עם פה גדול, שני סנפירי גב נפרדים (הראשון קוצני) וכתם כהה על מכסה הזימים.","فضي انسيابي بفم كبير، وزعنفتا ظهر منفصلتان (الأولى شوكية) وبقعة داكنة على غطاء الخياشيم."],
+ "Pomatomus saltatrix":["Blue-green back, silver sides, a big jaw full of sharp teeth and a black spot at the base of the side fin.","גב כחול-ירקרק, צדדים כסופים, לסת גדולה עם שיניים חדות וכתם שחור בבסיס סנפיר החזה.","ظهر أزرق مخضرّ وجانبان فضيان، فك كبير مليء بأسنان حادة وبقعة سوداء عند قاعدة الزعنفة الجانبية."],
+ "Lichia amia":["Large silver fish with a strongly wavy line along its side and a deeply forked tail.","דג כסוף וגדול עם קו צד גלי מאוד וזנב מפוצל עמוק.","سمكة فضية كبيرة مع خط جانبي متموّج بشدة وذيل مشقوق بعمق."],
+ "Sphyraena spp.":["Very long and thin, with a pointed head, a jutting lower jaw and big teeth. Yellow stripe or dark bars along the side.","ארוך ודק מאוד, ראש מחודד, לסת תחתונה בולטת ושיניים גדולות. פס צהוב או פסים כהים לאורך הצד.","طويل ونحيف جدًا، رأس مدبّب وفك سفلي بارز وأسنان كبيرة. شريط أصفر أو خطوط داكنة على الجانب."]};
+const WIKI={"Siganus rivulatus":"Siganus_rivulatus","Diplodus sargus":"Diplodus_sargus","Sillago sihama":"Sillago_sihama","Mugil cephalus":"Mugil_cephalus","Lithognathus mormyrus":"Lithognathus_mormyrus","Sparus aurata":"Sparus_aurata","Dicentrarchus labrax":"Dicentrarchus_labrax","Pomatomus saltatrix":"Bluefish","Lichia amia":"Lichia_amia","Sphyraena spp.":"Barracuda"};
+const T4={
+en:{tabs:["Today","Map","Log","Guide"],fishGuideT:"Fish guide",photosLink:"Real photos (Wikipedia)",drawNote:"The drawings show the marks to look for – check the real photos to be sure.",beachL:"Beach",showFc:n=>`📊 Forecast for ${n}`},
+he:{tabs:["היום","מפה","יומן","מדריך"],fishGuideT:"מדריך דגים",photosLink:"תמונות אמיתיות (ויקיפדיה)",drawNote:"הציורים מראים את הסימנים שצריך לחפש – בדקו גם בתמונות האמיתיות.",beachL:"חוף",showFc:n=>`📊 תחזית ל${n}`},
+ar:{tabs:["اليوم","الخريطة","السجل","الدليل"],fishGuideT:"دليل الأسماك",photosLink:"صور حقيقية (ويكيبيديا)",drawNote:"الرسومات تُظهر العلامات التي يجب البحث عنها – تأكد أيضًا من الصور الحقيقية.",beachL:"الشاطئ",showFc:n=>`📊 توقعات ${n}`}};
+Object.keys(T4).forEach(l=>Object.assign(T[l],T4[l]));
+
 // ================= state & helpers =================
 const TZ="Asia/Jerusalem";
 const $=id=>document.getElementById(id);
 function ls(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function ss(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-const S={lang:ls("sdp-lang","ar"),spot:ls("sdp-spot","jaf"),sel:null,clarO:null};
+const S={lang:ls("sdp-lang","ar"),spot:ls("sdp-spot","jaf"),sel:null,clarO:null,tab:ls("sdp-tab","today")};
 let TIMES=[],TS=[],D={},NOW=0,LOADED=null,MOON=null,LEARN=null;
 const MY=()=>ls("sdp-myspots",[]);
 const allSpots=()=>SPOTS.concat(MY());
@@ -782,14 +874,15 @@ function render(){
  document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===S.lang));
  $("title").textContent=tx().title;$("tag").textContent=tx().tag;$("refresh").textContent=tx().refresh;
  renderSci();renderInstall();
- if(!LOADED){$("upd").textContent="";renderOffline();return}
+ if(!LOADED){$("upd").textContent="";document.body.dataset.tab="";$("tabbar").hidden=true;renderOffline();return}
+ document.body.dataset.tab=S.tab;renderTabbar();
  $("upd").textContent=`${tx().upd}: ${fmtDT(new Date(LOADED.at))}`;
  LEARN=learnStats();
  if(!D[S.spot]||!spotById(S.spot))S.spot=Object.keys(D).find(k=>spotById(k))||SPOTS[0].id;
  const spot=spotById(S.spot),d=D[spot.id],i=S.sel;
  const R={};allSpots().forEach(s=>{if(D[s.id])R[s.id]=evalAt(s,i)});
  renderMap(R);renderScore(spot,R[spot.id]);renderTimeline(spot);
- renderMoon(i);renderTide(spot,d,i);renderWind(spot,d,i);renderPres(d,i);renderWaves(d,i);renderClar(spot,i);renderFish(spot,d,i,R[spot.id]);renderLog();renderMapTools();if(STATIC_LANG!==S.lang){renderRigs();renderRules();STATIC_LANG=S.lang}
+ renderMoon(i);renderTide(spot,d,i);renderWind(spot,d,i);renderPres(d,i);renderWaves(d,i);renderClar(spot,i);renderFish(spot,d,i,R[spot.id]);renderLog();renderMapTools();renderSpotSel();if(STATIC_LANG!==S.lang){renderRigs();renderRules();renderFishGuide();STATIC_LANG=S.lang}
 }
 function renderMap(R){
  const X=lon=>(lon-34.45)*.845*230,Y=lat=>(33.15-lat)*230;
@@ -938,17 +1031,17 @@ function renderFish(spot,d,i,r){
   s+=f.water==="murky"?((cl===1||cl===2)?10:3):f.water==="clear"?((cl<=1)?10:3):7;
   s+=f.light.includes(lt)?8:3; s+=f.hab.some(h=>spot.hab.includes(h))?15:2;
   return [Math.min(100,s),f]}).sort((a,b)=>b[0]-a[0]).slice(0,6);
- $("fishPanel").innerHTML=`<h2>${tx().fish}</h2>`+fit.map(([s,f])=>`<div class="fish"><div class="top"><b>${esc(f.n[L])} <i>${esc(f.sci)}</i></b><span class="pill" style="background:${col(scoreCol(s))}">${tx().match} ${s}%</span></div><div class="bait">🎣 ${tx().bait}: ${esc(f.b[L])}</div><div class="small">📏 ${esc(f.min?tx().minSize(f.min):tx().noMin)} · <button class="linkbtn" data-rig="${f.rig}">🪝 ${esc(RIGS[f.rig].n[L])}</button></div>${f.note?`<div class="note">⚠ ${esc(f.note[L])}</div>`:""}</div>`).join("");
+ $("fishPanel").innerHTML=`<h2>${tx().fish}</h2>`+fit.map(([s,f])=>`<div class="fish"><div class="pic">${fishSVG(f.sci,100)}</div><div><div class="top"><b>${esc(f.n[L])} <i>${esc(f.sci)}</i></b><span class="pill" style="background:${col(scoreCol(s))}">${tx().match} ${s}%</span></div><div class="bait">🎣 ${tx().bait}: ${esc(f.b[L])}</div><div class="small">📏 ${esc(f.min?tx().minSize(f.min):tx().noMin)} · <button class="linkbtn" data-rig="${f.rig}">🪝 ${esc(RIGS[f.rig].n[L])}</button></div>${f.note?`<div class="note">⚠ ${esc(f.note[L])}</div>`:""}</div></div>`).join("");
 }
 function renderSci(){$("sciPanel").innerHTML=`<h2>${tx().sciT}</h2>`+tx().sci.map((p,k)=>(k===7?`<p>${esc(tx().sciLog)}</p>`:"")+`<p class="${k>=7?"small":""}">${esc(p)}</p>`).join("")}
 
 // ================= map: leaflet, gps, my spots =================
-let LM=null,LMK=[],LGPS=null,addMode=false,useSat=true,BASES={},pendingSpot=null,mapMsg="";
+let LMfit=false,LM=null,LMK=[],LGPS=null,addMode=false,useSat=true,BASES={},pendingSpot=null,mapMsg="";
 function initLeaflet(){
  if(LM)return true;if(!window.L)return false;
  try{
   $("lmap").hidden=false;$("mapwrap").classList.add("noSvg");$("layerBtn").hidden=false;
-  LM=L.map("lmap").fitBounds([[31.62,34.5],[33.08,35.12]]);
+  LM=L.map("lmap");LM.fitBounds([[31.62,34.5],[33.08,35.12]]);LMfit=$("lmap").offsetWidth>0;
   BASES.sat=L.layerGroup([L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Imagery © Esri"}),
    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19})]);
   BASES.street=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"});
@@ -966,7 +1059,7 @@ function renderMapTools(){
   <div><label>${t.spotType}</label><div class="chips">${["rock","sand","harbor"].map(k=>`<button class="chip" data-ty="${k}" aria-pressed="${pendingSpot.type===k}">${t.types[k]}</button>`).join("")}</div></div>
   <div class="row2"><button class="btn solid" id="sSave">${t.saveSpot}</button><button class="btn" id="sCancel">${t.cancel}</button></div></div>`:"";
  const cur=spotById(S.spot);
- $("spotDel").innerHTML=cur&&cur.custom?`<button class="btn" id="delSpot" style="margin-top:8px">✕ ${t.delSpot}: ${esc(nm(cur))}</button>`:"";
+ $("spotDel").innerHTML=(cur?`<button class="btn solid" id="goToday" style="width:100%;margin-top:10px">${esc(t.showFc(nm(cur)))}</button>`:"")+(cur&&cur.custom?`<button class="btn" id="delSpot" style="margin-top:8px">✕ ${t.delSpot}: ${esc(nm(cur))}</button>`:"");
 }
 function gpsGet(cb){
  if(!navigator.geolocation){mapMsg=tx().gpsNo;renderMapTools();return}
@@ -1009,7 +1102,7 @@ function renderLog(){
  else{const p=logPre;
   h+=`<div class="form"><div class="row2"><div><label for="fSpot">${t.spotL}</label><select id="fSpot">${allSpots().map(s=>`<option value="${esc(s.id)}"${s.id===p.spot?" selected":""}>${esc(nm(s))}</option>`).join("")}</select></div>
    <div><label for="fWhen">${t.when}</label><input type="datetime-local" id="fWhen" value="${dtLocal(p.t)}"></div></div>
-   <div class="row2"><div><label for="fFish">${t.result}</label><select id="fFish"><option value="-1">${t.nofish}</option>${FISH.map((f,k)=>`<option value="${k}"${p.fish===k?" selected":""}>${esc(f.n[Li])}</option>`).join("")}<option value="99"${p.fish===99?" selected":""}>${t.other}</option></select></div>
+   <div class="row2"><div><label for="fFish">${t.result}</label><select id="fFish"><option value="-1">${t.nofish}</option>${FISH.map((f,k)=>`<option value="${k}"${p.fish===k?" selected":""}>${esc(f.n[Li])}</option>`).join("")}<option value="99"${p.fish===99?" selected":""}>${t.other}</option></select><div id="fishPic">${FISH[p.fish]?fishSVG(FISH[p.fish].sci,130):""}</div></div>
    <div><label for="fCount">${t.count}</label><input type="number" id="fCount" min="0" max="99" inputmode="numeric" value="${p.count}"></div></div>
    <div class="row2"><div><label for="fLen">${t.lenL}</label><input type="number" id="fLen" min="0" max="300" step="0.5" inputmode="decimal" value="${p.len||""}"><div class="sizemsg" id="sizeMsg">${sizeMsg(p)}</div></div>
    <div><label>${t.photoL}</label><label class="btn filebtn">${p.photo?t.photoChange:t.photo}<input type="file" id="fPhoto" accept="image/*"></label>${p.photoURL?`<img class="phprev" src="${p.photoURL}" alt="">`:""}</div></div>
@@ -1057,12 +1150,13 @@ function importData(file){
   ss("sdp-myspots",my);logMsg=tx().imported(added);loadAll()});
 }
 function formInput(e){const id=e.target.id,v=e.target.value;
+ if(id==="spotSel"){if(e.type==="change"){S.spot=v;ss("sdp-spot",S.spot);render()}return}
  if(id==="sName"&&pendingSpot){pendingSpot.name=v;return}
  if(id==="impFile"){if(e.type==="change"&&e.target.files[0])importData(e.target.files[0]);return}
  if(!logOpen||!logPre)return;
  if(id==="fSpot")logPre.spot=v;
  else if(id==="fWhen")logPre.t=new Date(v).getTime()||logPre.t;
- else if(id==="fFish"){logPre.fish=+v;const c=$("fCount");if(logPre.fish===-1){logPre.count=0;c.value=0}else if(!(logPre.count>0)){logPre.count=1;c.value=1}const sm=$("sizeMsg");if(sm)sm.innerHTML=sizeMsg(logPre)}
+ else if(id==="fFish"){logPre.fish=+v;const fp=$("fishPic");if(fp)fp.innerHTML=FISH[logPre.fish]?fishSVG(FISH[logPre.fish].sci,130):"";const c=$("fCount");if(logPre.fish===-1){logPre.count=0;c.value=0}else if(!(logPre.count>0)){logPre.count=1;c.value=1}const sm=$("sizeMsg");if(sm)sm.innerHTML=sizeMsg(logPre)}
  else if(id==="fLen"){logPre.len=Math.max(0,Math.min(300,parseFloat(v)||0))||null;const sm=$("sizeMsg");if(sm)sm.innerHTML=sizeMsg(logPre)}
  else if(id==="fPhoto"){if(e.type==="change"&&e.target.files[0])compress(e.target.files[0]).then(b=>{if(!logPre)return;if(logPre.photoURL)URL.revokeObjectURL(logPre.photoURL);logPre.photo=b;logPre.photoURL=URL.createObjectURL(b);renderLog()}).catch(()=>{})}
  else if(id==="fCount")logPre.count=Math.max(0,Math.min(99,+v||0));
@@ -1141,6 +1235,20 @@ function renderInstall(){const c=$("installCard");if(!c)return;
  if(isStandalone()||ls("sdp-inst",false)||!appURL()){c.innerHTML="";return}
  c.innerHTML=`<div class="banner">📲 ${deferredPrompt?tx().installA:tx().installI}<div class="chips">${deferredPrompt?`<button class="chip" id="instBtn">${tx().installBtn}</button>`:""}<button class="chip" id="instX">${tx().dismiss}</button></div></div>`}
 
+// ================= tabs & fish guide =================
+function renderTabbar(){const ic=["📊","🗺️","📒","📘"],ids=["today","map","log","guide"];
+ const tb=$("tabbar");tb.hidden=false;tb.innerHTML=ids.map((id,k)=>`<button role="tab" data-tab-btn="${id}" aria-selected="${S.tab===id}"><span aria-hidden="true">${ic[k]}</span>${esc(tx().tabs[k])}</button>`).join("")}
+function showTab(t){S.tab=t;ss("sdp-tab",t);if(LOADED)document.body.dataset.tab=t;renderTabbar();window.scrollTo(0,0);
+ if(t==="map"&&LM)setTimeout(()=>{LM.invalidateSize();if(!LMfit){LM.fitBounds([[31.62,34.5],[33.08,35.12]]);LMfit=true}},60)}
+function renderSpotSel(){$("spotSelL").textContent=tx().beachL;
+ $("spotSel").innerHTML=allSpots().filter(s=>D[s.id]).map(s=>`<option value="${esc(s.id)}"${s.id===S.spot?" selected":""}>${esc(nm(s))}</option>`).join("")}
+function renderFishGuide(){const t=tx(),L=LI[S.lang];
+ $("fishGuide").innerHTML=`<h2>🐟 ${t.fishGuideT}</h2><p class="small">${t.drawNote}</p>`+FISH.map(f=>`<div class="fg2"><div class="pic">${fishSVG(f.sci,300)}</div>
+  <h3>${esc(f.n[L])} <i>${esc(f.sci)}</i></h3><p class="id">🔎 ${esc(FID[f.sci][L])}</p>
+  <div class="small">🎣 ${t.bait}: ${esc(f.b[L])}</div>
+  <div class="small">📏 ${esc(f.min?t.minSize(f.min):t.noMin)} · <button class="linkbtn" data-rig="${f.rig}">🪝 ${esc(RIGS[f.rig].n[L])}</button> · <a href="https://en.wikipedia.org/wiki/${WIKI[f.sci]}" target="_blank" rel="noopener">${t.photosLink}</a></div>
+  ${f.note?`<div class="note">⚠ ${esc(f.note[L])}</div>`:""}</div>`).join("")}
+
 // ================= events =================
 document.querySelector(".lang").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.lang=b.dataset.l;ss("sdp-lang",S.lang);
  if(LOADED&&LOADED.cached)$("banner").innerHTML=`<div class="banner">${tx().cached} ${fmtDT(new Date(LOADED.at))}</div>`;
@@ -1152,7 +1260,7 @@ document.addEventListener("click",e=>{
  const shr=q("[data-share]");if(shr){shareCatch(shr.dataset.share);return}
  const th=q("img[data-ph]");if(th){openViewer(th.dataset.ph);return}
  if(q("#shareScore")){shareScore();return}
- const rg=q("[data-rig]");if(rg){const dd=$("rig-"+rg.dataset.rig);if(dd){dd.open=true;dd.scrollIntoView({behavior:"smooth",block:"start"})}return}
+ const rg=q("[data-rig]");if(rg){showTab("guide");const dd=$("rig-"+rg.dataset.rig);if(dd){dd.open=true;dd.scrollIntoView({behavior:"smooth",block:"start"})}return}
  if(q("#instBtn")&&deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;renderInstall()});return}
  if(q("#instX")){ss("sdp-inst",true);renderInstall();return}
  if(q("#gpsBtn")){nearest();return}
@@ -1164,14 +1272,16 @@ document.addEventListener("click",e=>{
  if(q("#sCancel")){pendingSpot=null;mapMsg="";render();return}
  if(q("#delSpot")){deleteSpot();return}
  if(q("#logOpen")){openLog(S.spot,Date.now());return}
- if(q("#logHere")){openLog(S.spot,+TIMES[S.sel]);$("logPanel").scrollIntoView({behavior:"smooth",block:"start"});return}
+ if(q("#logHere")){showTab("log");openLog(S.spot,+TIMES[S.sel]);$("logPanel").scrollIntoView({behavior:"smooth",block:"start"});return}
  if(q("#logCancel")){logOpen=false;logPre=null;renderLog();return}
  if(q("#logSave")){saveTrip();return}
  const dl=q("[data-del]");if(dl){const id=Number(dl.dataset.del);ss("sdp-log",ls("sdp-log",[]).filter(x=>Number(x.id)!==id));IDB.del(String(id)).catch(()=>{});if(PHURL[id]){URL.revokeObjectURL(PHURL[id]);delete PHURL[id];delete PHBLOB[id]}logMsg="";render();return}
  if(q("#tuneBtn")){ss("sdp-tune",!(LEARN&&LEARN.on));render();return}
  if(q("#expBtn")){exportData();return}
  if(q("#impBtn")){$("impFile").click();return}
- const sp=e.target.closest("[data-s]");if(sp){S.spot=sp.dataset.s;ss("sdp-spot",S.spot);render();return}
+ const tb=q("[data-tab-btn]");if(tb){showTab(tb.dataset.tabBtn);return}
+ if(q("#goToday")){showTab("today");return}
+ const sp=e.target.closest("[data-s]");if(sp){S.spot=sp.dataset.s;ss("sdp-spot",S.spot);showTab("today");render();return}
  const h=e.target.closest("[data-i]");if(h){S.sel=+h.dataset.i;render();return}
  const c=e.target.closest("#clarChips [data-c]");if(c){S.clarO=c.dataset.c===""?null:+c.dataset.c;render();return}
 });
