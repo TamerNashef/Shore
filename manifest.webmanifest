@@ -1,0 +1,15 @@
+{
+  "name": "Shore Day – Israel shore fishing",
+  "short_name": "Shore Day",
+  "description": "Live shore-fishing chance for Israel's Mediterranean coast",
+  "start_url": "./shore-day-pro.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E7EFEE",
+  "theme_color": "#0F6B78",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

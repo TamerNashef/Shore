@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0F6B78">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Shore Day">
 <title>Shore Day – يوم الشاطئ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -142,6 +148,36 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
 .tune{margin-top:10px;font-size:.88rem;padding:8px 10px;border-radius:10px;border:1px dashed var(--sea)}
 #logPanel h3{font-size:.95rem;margin:14px 0 6px}
 .leaflet-container{font:inherit}
+.rig{border-top:1px solid var(--line);padding:2px 0}
+.rig summary{cursor:pointer;font-weight:700;padding:10px 0;list-style:none;display:flex;justify-content:space-between;gap:8px}
+.rig summary::-webkit-details-marker{display:none}
+.rig summary::after{content:"+";color:var(--muted);font-weight:400}
+.rig[open] summary::after{content:"−"}
+.rig svg{width:100%;max-width:380px;height:auto;display:block;margin:2px auto 8px;direction:ltr}
+.rig .rl{font-size:11px;fill:var(--ink)}
+.rig ol{margin:0 0 8px;padding-inline-start:20px;font-size:.9rem}
+.rig li{margin-bottom:4px}
+.tbl{width:100%;border-collapse:collapse;font-size:.86rem}
+.tbl td{border-top:1px solid var(--line);padding:6px 4px;vertical-align:top}
+.tbl td:last-child{text-align:end;font-weight:700;white-space:nowrap}
+.tbl i{color:var(--muted);font-size:.76rem}
+.rules ul{padding-inline-start:18px;margin:0}
+.rules li{margin-bottom:6px;font-size:.9rem}
+.rnote{margin-top:10px;border-inline-start:4px solid var(--red);background:var(--chip);border-radius:8px;padding:8px 10px;font-size:.88rem}
+.rmk{width:26px;height:26px;border-radius:50%;background:#C0392B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.thumb{width:60px;height:60px;object-fit:cover;border-radius:8px;cursor:pointer;display:block;margin-top:6px;background:var(--chip)}
+.phprev{max-width:110px;border-radius:8px;display:block;margin-top:6px}
+.sizemsg{font-size:.84rem;margin-top:4px}
+.tripbtns{display:flex;flex-direction:column;gap:2px;align-items:flex-end}
+.linkbtn{font:inherit;font-size:inherit;background:none;border:0;color:var(--sea);text-decoration:underline;padding:4px 0;cursor:pointer}
+.filebtn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;width:100%}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
+.sharebtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+#viewer{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
+#viewer[hidden]{display:none}
+#viewer img{max-width:100%;max-height:72vh;border-radius:10px}
+#viewer .vb{display:flex;gap:10px;margin-top:14px}
+#viewer .btn{color:#fff;border-color:#fff;background:transparent}
 [hidden]{display:none!important}
 @media (max-width:380px){.mapwrap{grid-template-columns:120px 1fr}.map svg{width:120px}.ring{width:100px;height:100px}}
 @media (prefers-reduced-motion:no-preference){.pulse{animation:pl 1.8s ease-out infinite;transform-origin:center;transform-box:fill-box}@keyframes pl{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(2.2)}}}
@@ -157,6 +193,7 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
   </header>
   <p class="tag" id="tag"></p>
   <div id="banner"></div>
+  <div id="installCard"></div>
   <div class="status"><span id="upd"></span><button class="btn" id="refresh"></button></div>
 
   <div id="app" hidden>
@@ -164,7 +201,7 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
       <h2 id="tMap"></h2>
       <div id="lmap" class="lmap" dir="ltr" hidden></div>
       <div class="maptools"><button class="btn" id="gpsBtn"></button><button class="btn" id="addSpotBtn"></button><button class="btn" id="layerBtn" hidden></button></div>
-      <div id="mapMsg"></div><div id="spotForm"></div>
+      <p class="small" id="resLegend" style="margin:0 0 8px"></p><div id="mapMsg"></div><div id="spotForm"></div>
       <div class="mapwrap" id="mapwrap"><div class="map" id="map"></div><ol class="rank" id="rank"></ol></div>
       <div id="spotDel"></div>
       <div id="alerts"></div>
@@ -187,10 +224,13 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
     <section class="panel" id="wavePanel"></section>
     <section class="panel" id="clarPanel"></section>
     <section class="panel" id="fishPanel"></section>
+    <section class="panel" id="rigPanel"></section>
+    <section class="panel" id="rulesPanel"></section>
   </div>
   <section class="panel" id="moonOffline" hidden></section>
   <section class="panel sci" id="sciPanel"></section>
 </main>
+<div id="viewer" hidden></div>
 
 <script>
 "use strict";
@@ -347,7 +387,7 @@ en:{gps:"📍 Nearest beach",addSpot:"＋ Add my spot",layerSat:"Street map",lay
  scoreCheck:(a,b)=>`App score on trips with fish: ${a}% · without fish: ${b}%.`,scoreGood:"The score matches your results.",scoreBad:"Not matching yet – keep logging and tuning will adjust it.",
  tuneL:"Tune the score to my log",tuneNeed:"Personal tuning turns on after 5 trips logged on the day (with conditions).",tuneOn:"On",tuneOff:"Off",
  tuned:(v,f)=>`Tuned to your log: ${v} points (mostly ${f})`,exp:"Back up",imp:"Restore backup",imported:n=>`Restored ${n} trips.`,badFile:"That file isn’t a Shore Day backup.",
- storeNote:"Your log and spots are saved on this phone only. Back up now and then.",del:"Delete",recent:"Recent trips",
+ storeNote:"Your log, photos and spots are saved on this phone only. Back up now and then – the backup has the log and spots, not the photos.",del:"Delete",recent:"Recent trips",
  sciLog:"Your log (up to ±15 points): because the angler’s own choices matter most, after 5 logged trips the app compares your catches in each condition with your own average and nudges the score toward what works for you. Trips with no fish count too."},
 he:{gps:"📍 החוף הקרוב",addSpot:"＋ הוספת מקום שלי",layerSat:"מפת רחובות",layerStreet:"לוויין",addHint:"הקישו על המפה בדיוק במקום שבו אתם דגים, או השתמשו במיקום שלכם.",useLoc:"שימוש במיקום שלי",cancel:"ביטול",
  spotName:"שם המקום",spotType:"סוג",types:{rock:"סלעים",sand:"חול",harbor:"נמל / שובר גלים"},saveSpot:"שמירת מקום",delSpot:"מחיקת מקום",
@@ -360,7 +400,7 @@ he:{gps:"📍 החוף הקרוב",addSpot:"＋ הוספת מקום שלי",laye
  scoreCheck:(a,b)=>`ציון האפליקציה ביציאות עם דגים: ${a}% · בלי דגים: ${b}%.`,scoreGood:"הציון תואם את התוצאות שלך.",scoreBad:"עדיין לא תואם – המשיכו לרשום וההתאמה תתקן.",
  tuneL:"התאמת הציון ליומן שלי",tuneNeed:"ההתאמה האישית נפתחת אחרי 5 יציאות שנרשמו באותו יום (עם תנאים).",tuneOn:"פועל",tuneOff:"כבוי",
  tuned:(v,f)=>`מותאם ליומן שלך: ${v} נקודות (בעיקר ${f})`,exp:"גיבוי",imp:"שחזור גיבוי",imported:n=>`שוחזרו ${n} יציאות.`,badFile:"הקובץ הזה אינו גיבוי של יום חוף.",
- storeNote:"היומן והמקומות נשמרים בטלפון הזה בלבד. גבו מדי פעם.",del:"מחיקה",recent:"יציאות אחרונות",
+ storeNote:"היומן, התמונות והמקומות נשמרים בטלפון הזה בלבד. גבו מדי פעם – הגיבוי כולל את היומן והמקומות, בלי התמונות.",del:"מחיקה",recent:"יציאות אחרונות",
  sciLog:"היומן שלך (עד ±15 נקודות): מכיוון שההחלטות של הדייג משפיעות הכי הרבה, אחרי 5 יציאות רשומות האפליקציה משווה את השלל שלך בכל תנאי לממוצע שלך ומזיזה את הציון לכיוון מה שעובד בשבילך. גם יציאות בלי דגים נחשבות."},
 ar:{gps:"📍 أقرب شاطئ",addSpot:"＋ أضف مكاني",layerSat:"خريطة شوارع",layerStreet:"قمر صناعي",addHint:"اضغط على الخريطة في المكان الذي تصطاد فيه بالضبط، أو استخدم موقعك.",useLoc:"استخدم موقعي",cancel:"إلغاء",
  spotName:"اسم المكان",spotType:"النوع",types:{rock:"صخور",sand:"رمل",harbor:"ميناء / كاسر أمواج"},saveSpot:"احفظ المكان",delSpot:"احذف المكان",
@@ -373,7 +413,7 @@ ar:{gps:"📍 أقرب شاطئ",addSpot:"＋ أضف مكاني",layerSat:"خر�
  scoreCheck:(a,b)=>`نتيجة التطبيق في رحلات فيها سمك: ${a}% · بدون سمك: ${b}%.`,scoreGood:"النتيجة تتوافق مع نتائجك.",scoreBad:"لا تتوافق بعد – استمر بالتسجيل والتعديل سيصحّحها.",
  tuneL:"عدّل النتيجة حسب سجلي",tuneNeed:"التعديل الشخصي يعمل بعد 5 رحلات مسجّلة في نفس اليوم (مع الظروف).",tuneOn:"مفعّل",tuneOff:"متوقف",
  tuned:(v,f)=>`مُعدّل حسب سجلك: ${v} نقاط (غالبًا ${f})`,exp:"نسخ احتياطي",imp:"استعادة النسخة",imported:n=>`تمت استعادة ${n} رحلات.`,badFile:"هذا الملف ليس نسخة احتياطية من يوم الشاطئ.",
- storeNote:"السجل والأماكن محفوظة على هذا الهاتف فقط. خذ نسخة احتياطية من وقت لآخر.",del:"حذف",recent:"آخر الرحلات",
+ storeNote:"السجل والصور والأماكن محفوظة على هذا الهاتف فقط. خذ نسخة احتياطية من وقت لآخر – النسخة تشمل السجل والأماكن، بدون الصور.",del:"حذف",recent:"آخر الرحلات",
  sciLog:"سجلك (حتى ±15 نقطة): لأن قرارات الصيّاد هي الأهم، بعد تسجيل 5 رحلات يقارن التطبيق صيدك في كل ظرف بمعدّلك، ويعدّل النتيجة نحو ما ينجح معك. الرحلات بدون سمك تُحسب أيضًا."}};
 Object.keys(T2).forEach(l=>Object.assign(T[l],T2[l]));
 const SL={light:{golden:["Dawn / dusk","שחר / שקיעה","الفجر / الغروب"],night:["Night","לילה","الليل"],overcast:["Cloudy day","יום מעונן","نهار غائم"],day:["Sunny day","יום שמשי","نهار مشمس"]},
@@ -391,12 +431,12 @@ const SPOTS=[
  {id:"nah",n:["Nahariya","נהריה","نهاريا"],lat:33.008,lon:35.088,slat:33.008,slon:35.04,sea:270,turb:.1,hab:["rock"]},
  {id:"akk",n:["Akko","עכו","عكا"],lat:32.920,lon:35.066,slat:32.912,slon:35.02,sea:250,turb:.15,hab:["rock","harbor"]},
  {id:"hai",n:["Haifa – Bat Galim","חיפה – בת גלים","حيفا – بات جاليم"],lat:32.836,lon:34.978,slat:32.862,slon:34.95,sea:330,turb:.2,hab:["rock","harbor"]},
- {id:"cae",n:["Caesarea","קיסריה","قيسارية"],lat:32.505,lon:34.888,slat:32.505,slon:34.84,sea:280,turb:.2,hab:["rock","sand"]},
+ {id:"cae",n:["Caesarea – Aqueduct beach","קיסריה – חוף האמות","قيسارية – شاطئ القناطر"],lat:32.512,lon:34.889,slat:32.512,slon:34.84,sea:280,turb:.2,hab:["rock","sand"]},
  {id:"mic",n:["Michmoret","מכמורת","مخمورت"],lat:32.408,lon:34.866,slat:32.41,slon:34.82,sea:280,turb:.25,hab:["sand","rock"]},
  {id:"net",n:["Netanya","נתניה","نتانيا"],lat:32.330,lon:34.850,slat:32.33,slon:34.80,sea:285,turb:.25,hab:["sand"]},
  {id:"her",n:["Herzliya marina","מרינה הרצליה","مرسى هرتسليا"],lat:32.163,lon:34.795,slat:32.165,slon:34.75,sea:285,turb:.25,hab:["harbor","rock"]},
  {id:"tlv",n:["Tel Aviv port","נמל תל אביב","ميناء تل أبيب"],lat:32.097,lon:34.772,slat:32.098,slon:34.725,sea:285,turb:.3,hab:["harbor","rock"]},
- {id:"jaf",n:["Jaffa port","נמל יפו","ميناء يافا"],lat:32.053,lon:34.749,slat:32.053,slon:34.70,sea:275,turb:.3,hab:["harbor","rock"]},
+ {id:"jaf",n:["Jaffa – Ajami","יפו – עג׳מי","يافا – العجمي"],lat:32.046,lon:34.745,slat:32.046,slon:34.70,sea:275,turb:.3,hab:["harbor","rock"]},
  {id:"ash",n:["Ashdod","אשדוד","أسدود"],lat:31.795,lon:34.628,slat:31.80,slon:34.58,sea:295,turb:.4,hab:["sand"]},
  {id:"ask",n:["Ashkelon marina","מרינה אשקלון","مرسى عسقلان"],lat:31.680,lon:34.553,slat:31.685,slon:34.50,sea:295,turb:.4,hab:["harbor","sand"]}];
 const FISH=[
@@ -413,6 +453,103 @@ const FISH=[
  {sci:"Lichia amia",n:["Leerfish","ליצ׳ה","ليتشا"],b:["Live mullet or small fish, big lures","בורי חי או דג קטן, פיתיונות גדולים","بوري حيّ أو سمكة صغيرة، طُعوم كبيرة"],m:[3,4,5,6,9,10,11],sst:[17,27],wave:"any",water:"murky",light:["golden"],hab:["harbor","sand"]},
  {sci:"Sphyraena spp.",n:["Barracuda","ברקודה","باراكودا"],b:["Small metal lures, minnow lures","פיתיונות מתכת קטנים, דגיגים מלאכותיים","طُعوم معدنية صغيرة، سمكات صناعية"],m:[6,7,8,9,10,11],sst:[21,30],wave:"calm",water:"clear",light:["golden","day"],hab:["harbor","rock"]}];
 
+const FMIN={"Siganus rivulatus":null,"Diplodus sargus":11,"Sillago sihama":null,"Mugil cephalus":20,"Lithognathus mormyrus":11,"Sparus aurata":15,"Dicentrarchus labrax":null,"Pomatomus saltatrix":null,"Lichia amia":null,"Sphyraena spp.":20};
+const FRIG={"Siganus rivulatus":"float","Diplodus sargus":"bottom","Sillago sihama":"surf","Mugil cephalus":"float","Lithognathus mormyrus":"surf","Sparus aurata":"bottom","Dicentrarchus labrax":"live","Pomatomus saltatrix":"lure","Lichia amia":"live","Sphyraena spp.":"lure"};
+FISH.forEach(f=>{f.min=FMIN[f.sci];f.rig=FRIG[f.sci]});
+// Legal minimum sizes – Fisheries Regulations 1937, First Addendum (updated version)
+const SIZES=[
+ {sci:"Mugil cephalus, Chelon spp.",n:["Grey mullets","בורי","بوري"],min:20},
+ {sci:"Diplodus sargus",n:["White seabream","סרגוס","سرغوس"],min:11},
+ {sci:"Diplodus cervinus, D. annularis",n:["Zebra & annular seabream"],min:11},
+ {sci:"Lithognathus mormyrus",n:["Sand steenbras","מורמור","مرمور"],min:11},
+ {sci:"Oblada melanura",n:["Saddled seabream"],min:11},
+ {sci:"Pagellus erythrinus",n:["Common pandora"],min:11},
+ {sci:"Boops boops",n:["Bogue"],min:11},
+ {sci:"Mullus spp., Upeneus moluccensis",n:["Red mullets & goatfish"],min:11},
+ {sci:"Trachurus spp., Alepes djedaba",n:["Horse mackerels & scad"],min:11},
+ {sci:"Sardinella spp., Dussumieria acuta",n:["Sardines"],min:11},
+ {sci:"Sparus aurata",n:["Gilthead seabream","דניס","دنيس"],min:15},
+ {sci:"Pagrus spp., Dentex gibbosus",n:["Porgies & pink dentex"],min:15},
+ {sci:"Merluccius merluccius, Solea solea, Saurida spp.",n:["Hake, sole & lizardfish"],min:16},
+ {sci:"Sphyraena sphyraena, S. chrysotaenia",n:["Barracudas","ברקודה","باراكودا"],min:20},
+ {sci:"Scomberomorus commerson, Polyprion americanus",n:["Spanish mackerel & wreckfish"],min:30},
+ {sci:"Argyrosomus regius",n:["Meagre"],min:40},
+ {sci:"Epinephelus marginatus, E. aeneus, Mycteroperca rubra",n:["Groupers","דקרים","هامور"],min:40},
+ {sci:"Thunnus thynnus",n:["Atlantic bluefin tuna"],min:70}];
+// Marine reserves & no-fishing zones (pins approximate; boundary text from the Nature and Parks Authority guide / Fisheries Regulations)
+const RES=[
+ {lat:33.07,lon:35.10,n:["Rosh Hanikra–Akhziv reserve","שמורת ראש הנקרה–אכזיב","محمية رأس الناقورة–الزيب"],t:["From the Lebanon border at Rosh Hanikra to about 600 m south of Akhziv, out to ~15 km. Rod fishing from the shore is banned.","מגבול לבנון בראש הנקרה ועד כ־600 מ׳ דרומית לאכזיב, עד כ־15 ק״מ לים. דיג בחכה מהחוף אסור.","من حدود لبنان في رأس الناقورة حتى نحو 600 م جنوب الزيب، وحتى نحو 15 كم في البحر. الصيد بالقصبة من الشاطئ ممنوع."]},
+ {lat:32.828,lon:34.957,n:["Shikmona–Rosh HaCarmel reserve","שמורת שקמונה–ראש הכרמל","محمية شقمونا–رأس الكرمل"],t:["Haifa, around Shikmona and the Carmel cape. Rod fishing from the shore is banned.","חיפה, באזור שקמונה וראש הכרמל. דיג בחכה מהחוף אסור.","حيفا، منطقة شقمونا ورأس الكرمل. الصيد بالقصبة من الشاطئ ممنوع."]},
+ {lat:32.825,lon:35.005,n:["Haifa port breakwaters","שוברי הגלים של נמל חיפה","كاسرات أمواج ميناء حيفا"],t:["No fishing inside the port or on its main and side breakwaters.","אסור לדוג בתוך הנמל או על שובר הגלים הראשי והצדדי.","يُمنع الصيد داخل الميناء أو على كاسر الأمواج الرئيسي والجانبي."]},
+ {lat:32.63,lon:34.915,n:["Dor-Habonim reserve","שמורת דור-הבונים","محمية دور-هبونيم"],t:["From the Maharal stream mouth to the north end of Dor beach (incl. Tel Dor), out ~2 km, plus the Dor and Ma’agan Michael islands. Rod fishing from the shore is banned.","משפך נחל מהרל ועד הקצה הצפוני של חוף דור (כולל תל דור), עד כ־2 ק״מ לים, וגם איי דור ומעגן מיכאל. דיג בחכה מהחוף אסור.","من مصب وادي مهرال حتى الطرف الشمالي لشاطئ دور (بما فيه تل دور)، حتى نحو 2 كم في البحر، إضافة إلى جزر دور ومعجان ميخائيل. الصيد بالقصبة من الشاطئ ممنوع."]},
+ {lat:32.497,lon:34.884,n:["Caesarea marine national park","הגן הלאומי הימי קיסריה","الحديقة الوطنية البحرية قيسارية"],t:["From Aqueduct beach south to the Sdot Yam pier, out ~500 m. No fishing.","מחוף האמות דרומה עד המזח של שדות ים, עד כ־500 מ׳ לים. אסור לדוג.","من شاطئ القناطر جنوبًا حتى رصيف سدوت يام، حتى نحو 500 م في البحر. يُمنع الصيد."]},
+ {lat:32.437,lon:34.872,n:["Gador reserve","שמורת גדור","محمية جدور"],t:["From the pool at the south end of Givat Olga beach to Tel Girit (Hadera), out ~300 m. No fishing.","מהבריכה בדרום חוף גבעת אולגה ועד תל גירית (חדרה), עד כ־300 מ׳ לים. אסור לדוג.","من البركة جنوب شاطئ جفعات أولغا حتى تل جيريت (الخضيرة)، حتى نحو 300 م في البحر. يُمنع الصيد."]},
+ {lat:32.054,lon:34.749,n:["Jaffa sea wall","חומת הים של יפו","سور البحر في يافا"],t:["No fishing inside or on the Jaffa sea wall and the rocks just north of it, except with a special licence.","אסור לדוג בתוך חומת הים של יפו או עליה ועל הסלעים שמצפון לה, אלא ברישיון מיוחד.","يُمنع الصيد داخل سور البحر في يافا أو عليه وعلى الصخور شماله، إلا برخصة خاصة."]},
+ {lat:31.735,lon:34.598,n:["Nitsanim–Evtah reserve","שמורת ניצנים–אבטח","محمية نيتسانيم–إفطاح"],t:["From Ashdod’s southern beach to Ashkelon’s northern city limit; ~300 m out, and the expanded reserve goes ~7 km out. No fishing.","מהחוף הדרומי של אשדוד ועד גבול העיר הצפוני של אשקלון; כ־300 מ׳ לים, והשמורה המורחבת עד כ־7 ק״מ. אסור לדוג.","من الشاطئ الجنوبي لأسدود حتى الحد الشمالي لمدينة عسقلان؛ نحو 300 م في البحر، والمحمية الموسّعة حتى نحو 7 كم. يُمنع الصيد."]},
+ {lat:31.605,lon:34.50,n:["Shikma reserve","שמורת שקמה","محمية شيكما"],t:["From 500 m south of the Ashkelon power-station chimneys to the Gaza border, out ~250 m. No fishing.","מ־500 מ׳ דרומית לארובות תחנת הכוח באשקלון ועד גבול עזה, עד כ־250 מ׳ לים. אסור לדוג.","من 500 م جنوب مداخن محطة الكهرباء في عسقلان حتى حدود غزة، حتى نحو 250 م في البحر. يُمنع الصيد."]}];
+const SPOT_RULE={
+ nah:["The Rosh Hanikra–Akhziv reserve starts a few km north – no fishing there.","שמורת ראש הנקרה–אכזיב מתחילה כמה ק״מ צפונה – אסור לדוג שם.","محمية رأس الناقورة–الزيب تبدأ على بعد بضعة كيلومترات شمالًا – يُمنع الصيد هناك."],
+ hai:["The Shikmona–Rosh HaCarmel reserve and Haifa port’s breakwaters are next to this beach – no fishing there.","שמורת שקמונה–ראש הכרמל ושוברי הגלים של נמל חיפה צמודים לחוף הזה – אסור לדוג שם.","محمية شقمونا–رأس الكرمل وكاسرات أمواج ميناء حيفا ملاصقة لهذا الشاطئ – يُمنع الصيد هناك."],
+ cae:["South of Aqueduct beach is a marine national park – fish at the beach or north of it.","דרומית לחוף האמות יש גן לאומי ימי – דגו בחוף עצמו או צפונה ממנו.","جنوب شاطئ القناطر حديقة وطنية بحرية – اصطد عند الشاطئ نفسه أو شماله."],
+ jaf:["Fish from the Ajami rocks – the port’s sea wall needs a special licence.","דגו מסלעי עג׳מי – על חומת הנמל צריך רישיון מיוחד.","اصطد من صخور العجمي – سور الميناء يحتاج رخصة خاصة."],
+ ash:["The Nitsanim–Evtah reserve starts at Ashdod’s southern beach – no fishing south of it.","שמורת ניצנים–אבטח מתחילה בחוף הדרומי של אשדוד – אסור לדוג דרומה ממנו.","محمية نيتسانيم–إفطاح تبدأ عند الشاطئ الجنوبي لأسدود – يُمنع الصيد جنوبه."],
+ ask:["Reserves start north of the city and south of the power station – fish within the city beaches.","השמורות מתחילות צפונית לעיר ודרומית לתחנת הכוח – דגו בחופי העיר.","المحميات تبدأ شمال المدينة وجنوب محطة الكهرباء – اصطد في شواطئ المدينة."]};
+const RIGS={
+ float:{n:["Float rig","חכה עם מצוף","عُدّة العوّامة"],lay:["line","float","shots","hook"],
+  parts:[["Main line 0.20–0.25 mm","Float","Split shots","Hook #10–14"],["חוט ראשי 0.20–0.25 מ״מ","מצוף","משקולות קטנות","קרס #10–14"],["خيط رئيسي 0.20–0.25 مم","عوّامة","رصاصات صغيرة","صنارة #10–14"]],
+  steps:[["Set the float so the bait hangs 0.5–2 m deep.","Pinch split shots below the float until only its tip shows.","Use a pea-sized ball of bread dough or a strip of sea lettuce, and throw a little bread around to bring fish in."],
+   ["כוונו את המצוף כך שהפיתיון יהיה בעומק 0.5–2 מ׳.","הוסיפו משקולות קטנות מתחת למצוף עד שרק הקצה שלו בולט.","השתמשו בכדור בצק בגודל אפונה או ברצועת חסת ים, וזרקו מעט לחם כדי למשוך דגים."],
+   ["اضبط العوّامة ليكون الطُّعم على عمق 0.5–2 م.","ضع رصاصات صغيرة تحت العوّامة حتى يظهر طرفها فقط.","استخدم كرة عجين بحجم حبة البازلاء أو شريط خس البحر، وارمِ قليلًا من الخبز لجذب السمك."]]},
+ bottom:{n:["Sliding sinker bottom rig","חכת תחתית עם משקולת נעה","عُدّة القاع بالرصاصة المنزلقة"],lay:["line","sinker","swivel","leader","hook"],
+  parts:[["Main line 0.30 mm","Sliding sinker 30–80 g","Swivel","Leader 0.25 mm, 50–80 cm","Hook #4–8"],["חוט ראשי 0.30 מ״מ","משקולת נעה 30–80 ג׳","מסתובב","חוט תחתון 0.25 מ״מ, 50–80 ס״מ","קרס #4–8"],["خيط رئيسي 0.30 مم","رصاصة منزلقة 30–80 غ","مِدوار (سويفل)","خيط سفلي 0.25 مم، 50–80 سم","صنارة #4–8"]],
+  steps:[["Thread the sinker on the main line, then tie on the swivel – the fish takes the bait without feeling the weight.","Cast next to rocks or into the white water and keep the line just tight.","Wait for two or three knocks before striking – seabream nibble first."],
+   ["השחילו את המשקולת על החוט הראשי ואז קשרו מסתובב – הדג לוקח את הפיתיון בלי להרגיש את המשקל.","הטילו ליד סלעים או לתוך הקצף, ושמרו על חוט מתוח קלות.","חכו לשתיים–שלוש נקישות לפני שאתם מושכים – הסרגוס והדניס מנקרים קודם."],
+   ["أدخل الرصاصة في الخيط الرئيسي ثم اربط المِدوار – يأخذ السمك الطُّعم دون أن يشعر بالوزن.","ارمِ بجانب الصخور أو داخل الزبد الأبيض، وأبقِ الخيط مشدودًا قليلًا.","انتظر نقرتين أو ثلاثًا قبل السحب – السرغوس والدنيس ينقران أولًا."]]},
+ surf:{n:["Two-hook surf rig","חכת חוף עם שני קרסים","عُدّة الشاطئ بصنارتين"],lay:["line","dropper","dropper","sinker"],
+  parts:[["Shock leader 0.50 mm","Dropper 1: hook #6–10","Dropper 2: hook #6–10","Sinker 80–120 g"],["חוט הלם 0.50 מ״מ","זרוע 1: קרס #6–10","זרוע 2: קרס #6–10","משקולת 80–120 ג׳"],["خيط صدمة 0.50 مم","فرع 1: صنارة #6–10","فرع 2: صنارة #6–10","رصاصة 80–120 غ"]],
+  steps:[["Tie two short droppers (15–25 cm) above the sinker.","Cast beyond the first breaking wave – fish feed in the trough behind it.","Use small pieces of sea worm or shrimp so small mouths can take them."],
+   ["קשרו שתי זרועות קצרות (15–25 ס״מ) מעל המשקולת.","הטילו מעבר לגל השובר הראשון – הדגים ניזונים בתעלה שמאחוריו.","השתמשו בחתיכות קטנות של תולעת ים או שרימפס, כדי שגם פה קטן יוכל לבלוע."],
+   ["اربط فرعين قصيرين (15–25 سم) فوق الرصاصة.","ارمِ خلف أول موجة متكسّرة – السمك يتغذّى في القناة خلفها.","استخدم قطعًا صغيرة من ديدان البحر أو القريدس ليتمكن الفم الصغير من أخذها."]]},
+ lure:{n:["Spinning lure with wire leader","פיתיון מתכת עם מוביל פלדה","طُعم معدني مع سلك فولاذي"],lay:["line","swivel","wire","lure"],
+  parts:[["Braid 0.12–0.16 mm","Snap swivel","Wire leader 20–30 cm","Metal lure 20–40 g / popper"],["חוט קלוע 0.12–0.16 מ״מ","מסתובב עם תפס","מוביל פלדה 20–30 ס״מ","פיתיון מתכת 20–40 ג׳ / פופר"],["خيط مجدول 0.12–0.16 مم","مِدوار بمشبك","سلك فولاذي 20–30 سم","طُعم معدني 20–40 غ / بوبر"]],
+  steps:[["Cast far and reel back fast, with short pauses.","Fish at first light and at sunset, when schools chase small fish near the surface.","Keep the wire leader – bluefish and barracuda bite through normal line."],
+   ["הטילו רחוק ואספו מהר, עם עצירות קצרות.","דגו עם אור ראשון ובשקיעה, כשלהקות רודפות דגיגים ליד פני המים.","אל תוותרו על מוביל הפלדה – גומבר וברקודה חותכים חוט רגיל."],
+   ["ارمِ بعيدًا واسحب بسرعة مع توقفات قصيرة.","اصطد مع أول ضوء وعند الغروب، حين تطارد الأسراب السمك الصغير قرب السطح.","لا تستغنِ عن السلك الفولاذي – اللوفر والباراكودا يقطعان الخيط العادي."]]},
+ live:{n:["Live-bait rig","חכה עם פיתיון חי","عُدّة الطُّعم الحي"],lay:["line","float","leader","livebait"],
+  parts:[["Main line 0.35–0.40 mm","Float or light sinker (optional)","Fluorocarbon leader 0.45 mm, 80 cm","Hook 1/0–3/0 (lip or back)"],["חוט ראשי 0.35–0.40 מ״מ","מצוף או משקולת קלה (לא חובה)","מוביל פלואורוקרבון 0.45 מ״מ, 80 ס״מ","קרס 1/0–3/0 (שפה או גב)"],["خيط رئيسي 0.35–0.40 مم","عوّامة أو رصاصة خفيفة (اختياري)","خيط فلوروكربون 0.45 مم، 80 سم","صنارة 1/0–3/0 (الشفة أو الظهر)"]],
+  steps:[["Catch a small mullet or bait fish first and keep it alive in a bucket.","Hook it lightly through the lips or behind the back fin so it swims naturally.","Let the fish run a few seconds after the take, then strike firmly."],
+   ["תפסו קודם בורי קטן או דגיג פיתיון ושמרו אותו חי בדלי.","הכניסו את הקרס בעדינות דרך השפתיים או מאחורי סנפיר הגב, כדי שישחה בטבעיות.","תנו לדג לרוץ כמה שניות אחרי הנגיסה, ואז משכו בחוזקה."],
+   ["اصطد أولًا بوري صغيرًا أو سمكة طُعم واحتفظ بها حيّة في دلو.","أدخل الصنارة بخفة عبر الشفتين أو خلف زعنفة الظهر لتسبح بشكل طبيعي.","اترك السمكة تجري بضع ثوانٍ بعد النتش، ثم اسحب بقوة."]]}};
+const T3={
+en:{rulesT:"Rules & minimum sizes",rules:["No licence is needed for rod fishing from the shore without aids (drone, kite, balloon or electric motor). Boat fishing, spearfishing and cast nets need a licence.","Daily limit: up to 5 kg, or 2 large fish. Lionfish (invasive) has no limit.","Measure from the tip of the mouth to the tip of the tail, laid flat. Put an undersized fish back right away, even if it’s dead.","Snagging with multi-point (“anchor”) hooks is banned.","Always protected: all sharks and rays, sea turtles, marine mammals, the slipper lobster (Scyllarides latus) and the goldblotch grouper (Epinephelus costae, since 2021) – plus more on the Nature and Parks Authority list.","The spring breeding-season ban (between March and July) does not apply to rod fishing from the shore.","No fishing in marine reserves. Rod fishing from the shore is banned at Rosh Hanikra, Shikmona and Dor-Habonim. Also off-limits: Haifa port’s breakwaters and the Jaffa sea wall (special licence only).","Rangers may ask to see your ID and your catch. Injured turtle or dolphin? Call *3639."],
+ sizesT:"Legal minimum sizes",noMin:"No legal minimum",minSize:m=>`Legal minimum ${m} cm`,noMinNote:"Fish not in this table have no legal minimum size, unless they’re protected.",
+ srcT:"Sources: Fisheries Regulations 1937 (updated version, Ministry of Agriculture) and the Nature and Parks Authority fishing guide (June 2024). This summary doesn’t replace the law – rules can change.",
+ mapReserves:"🚫 = marine reserve or no-fishing zone. Pins are approximate – exact boundaries are on the government map (govmap).",reserveWarn:n=>`This spot is close to the ${n} – make sure you’re outside it.`,
+ lenL:"Length (cm)",under:m=>`Under the legal minimum of ${m} cm – put it back right away.`,legal:m=>`Legal size (minimum ${m} cm).`,noMinMsg:"No legal minimum size for this fish.",
+ photoL:"Photo",photo:"📷 Add photo",photoChange:"📷 Change",share:"Share",close:"Close",rigsT:"Rigs & bait",rigFor:"Best for",rigNote:"Sizes are typical starting points – adjust to the fish and the sea.",
+ installI:"Install as an app: tap Share, then “Add to Home Screen”.",installA:"Install Shore Day as an app on this phone.",installBtn:"Install",dismiss:"Got it",
+ shareScore:(sp,w,sc,lb,wv,k,d)=>`🎣 ${sp} – ${w}: ${sc}% (${lb}). Waves ${wv} m, wind ${k} km/h from the ${d}.`,
+ shareCatch:(f,n,len,sp,dt)=>`🎣 Caught ${f}${n>1?` × ${n}`:""}${len?` (${len} cm)`:""} at ${sp}, ${dt}.`,shareNo:(sp,dt)=>`🎣 Fished at ${sp}, ${dt} – no luck this time.`},
+he:{rulesT:"חוקים וגדלים מינימליים",rules:["אין צורך ברישיון לדיג בחכה מהחוף בלי אמצעי עזר (רחפן, עפיפון, בלון או מנוע חשמלי). דיג מסירה, דיג בצלילה ושבכה דורשים רישיון.","מכסה יומית: עד 5 ק״ג, או 2 דגים גדולים. לזהרון (מין פולש) אין הגבלה.","מודדים מקצה הפה עד קצה הזנב, כשהדג שוכב. דג קטן מהמותר מחזירים מיד למים, גם אם הוא מת.","אסור לדוג בקרסים מרובי חודים (״עוגן״) שתופסים את הדג בגוף.","מוגנים תמיד: כל הכרישים והבטאים, צבי ים, יונקים ימיים, הכפן (Scyllarides latus) והדקר הזהוב (Epinephelus costae, מ־2021) – ועוד ברשימה של רשות הטבע והגנים.","האיסור בעונת הרבייה באביב (בין מרץ ליולי) לא חל על דיג בחכה מהחוף.","אסור לדוג בשמורות טבע ימיות. דיג בחכה מהחוף אסור בראש הנקרה, בשקמונה ובדור-הבונים. אסור גם בשוברי הגלים של נמל חיפה ובחומת הים של יפו (רק ברישיון מיוחד).","פקחים רשאים לבקש תעודה ולבדוק את השלל. צב או דולפין פצוע? התקשרו ל־3639*."],
+ sizesT:"גדלים מינימליים לפי החוק",noMin:"אין גודל מינימלי בחוק",minSize:m=>`גודל מינימלי ${m} ס״מ`,noMinNote:"לדגים שלא בטבלה אין גודל מינימלי בחוק, אלא אם הם מוגנים.",
+ srcT:"מקורות: תקנות הדיג 1937 (נוסח מעודכן, משרד החקלאות) ומדריך הדיג של רשות הטבע והגנים (יוני 2024). הסיכום לא מחליף את החוק – הכללים יכולים להשתנות.",
+ mapReserves:"🚫 = שמורה ימית או אזור שאסור לדוג בו. הסיכות משוערות – הגבולות המדויקים במפה הממשלתית (govmap).",reserveWarn:n=>`המקום הזה קרוב ל${n} – ודאו שאתם מחוץ לה.`,
+ lenL:"אורך (ס״מ)",under:m=>`קטן מהמינימום החוקי (${m} ס״מ) – החזירו מיד למים.`,legal:m=>`גודל חוקי (מינימום ${m} ס״מ).`,noMinMsg:"אין לדג הזה גודל מינימלי בחוק.",
+ photoL:"תמונה",photo:"📷 הוספת תמונה",photoChange:"📷 החלפה",share:"שיתוף",close:"סגירה",rigsT:"חכות ופיתיונות",rigFor:"מתאים ל",rigNote:"המידות הן נקודת התחלה מקובלת – התאימו לדג ולים.",
+ installI:"התקנה כאפליקציה: הקישו שיתוף ואז ״הוספה למסך הבית״.",installA:"התקינו את יום חוף כאפליקציה בטלפון.",installBtn:"התקנה",dismiss:"הבנתי",
+ shareScore:(sp,w,sc,lb,wv,k,d)=>`🎣 ${sp} – ${w}: ${sc}% (${lb}). גלים ${wv} מ׳, רוח ${k} קמ״ש מ${d}.`,
+ shareCatch:(f,n,len,sp,dt)=>`🎣 תפסתי ${f}${n>1?` × ${n}`:""}${len?` (${len} ס״מ)`:""} ב${sp}, ${dt}.`,shareNo:(sp,dt)=>`🎣 דגתי ב${sp}, ${dt} – הפעם בלי מזל.`},
+ar:{rulesT:"القوانين والأحجام الدنيا",rules:["لا حاجة لرخصة للصيد بالقصبة من الشاطئ دون وسائل مساعدة (درون، طائرة ورقية، بالون أو محرك كهربائي). الصيد من قارب أو بالغطس أو بالشبكة يحتاج رخصة.","الحد اليومي: حتى 5 كغ، أو سمكتان كبيرتان. سمك الأسد (نوع غازٍ) بلا حد.","قِس من طرف الفم حتى طرف الذيل والسمكة ممددة. أعِد السمكة الأصغر من المسموح إلى الماء فورًا، حتى لو كانت ميتة.","يُمنع استخدام الصنانير متعددة الرؤوس («المرساة») لخطف السمك من جسمه.","محمية دائمًا: كل أسماك القرش والراي، السلاحف البحرية، الثدييات البحرية، الكركند الحذائي (Scyllarides latus) والهامور الذهبي (Epinephelus costae، منذ 2021) – وغيرها في قائمة سلطة الطبيعة والحدائق.","منع الصيد في موسم التكاثر الربيعي (بين آذار وتموز) لا يشمل الصيد بالقصبة من الشاطئ.","يُمنع الصيد في المحميات البحرية. الصيد بالقصبة من الشاطئ ممنوع في رأس الناقورة وشقمونا ودور-هبونيم. ويُمنع أيضًا على كاسرات أمواج ميناء حيفا وسور البحر في يافا (برخصة خاصة فقط).","يحق للمراقبين طلب الهوية وفحص الصيد. سلحفاة أو دلفين مصاب؟ اتصل بـ ‎*3639."],
+ sizesT:"الأحجام الدنيا حسب القانون",noMin:"لا يوجد حد أدنى قانوني",minSize:m=>`الحد الأدنى ${m} سم`,noMinNote:"الأسماك غير الموجودة في الجدول لا حدّ أدنى قانونيًا لها، إلا إذا كانت محمية.",
+ srcT:"المصادر: أنظمة الصيد 1937 (النسخة المحدّثة، وزارة الزراعة) ودليل الصيد لسلطة الطبيعة والحدائق (حزيران 2024). هذا الملخص لا يحلّ محل القانون – القواعد قد تتغيّر.",
+ mapReserves:"🚫 = محمية بحرية أو منطقة يُمنع فيها الصيد. الدبابيس تقريبية – الحدود الدقيقة على الخريطة الحكومية (govmap).",reserveWarn:n=>`هذا المكان قريب من ${n} – تأكد أنك خارجها.`,
+ lenL:"الطول (سم)",under:m=>`أصغر من الحد الأدنى القانوني (${m} سم) – أعِدها إلى الماء فورًا.`,legal:m=>`حجم قانوني (الحد الأدنى ${m} سم).`,noMinMsg:"لا يوجد حد أدنى قانوني لهذه السمكة.",
+ photoL:"صورة",photo:"📷 أضف صورة",photoChange:"📷 تغيير",share:"مشاركة",close:"إغلاق",rigsT:"العُدّة والطُّعم",rigFor:"مناسبة لـ",rigNote:"المقاسات نقطة بداية شائعة – عدّلها حسب السمكة والبحر.",
+ installI:"ثبّته كتطبيق: اضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية».",installA:"ثبّت يوم الشاطئ كتطبيق على هاتفك.",installBtn:"تثبيت",dismiss:"فهمت",
+ shareScore:(sp,w,sc,lb,wv,k,d)=>`🎣 ${sp} – ${w}: ${sc}% (${lb}). موج ${wv} م، رياح ${k} كم/س من ${d}.`,
+ shareCatch:(f,n,len,sp,dt)=>`🎣 اصطدت ${f}${n>1?` × ${n}`:""}${len?` (${len} سم)`:""} في ${sp}، ${dt}.`,shareNo:(sp,dt)=>`🎣 خرجت للصيد في ${sp}، ${dt} – بلا حظ هذه المرة.`}};
+Object.keys(T3).forEach(l=>Object.assign(T[l],T3[l]));
+
 // ================= state & helpers =================
 const TZ="Asia/Jerusalem";
 const $=id=>document.getElementById(id);
@@ -427,7 +564,8 @@ const dist=(a,b,c,d)=>{const x=(d-b)*Math.cos((a+c)/2*rad),y=c-a;return Math.sqr
 const tx=()=>T[S.lang];
 const fx=(k,st)=>FX[k][st][LI[S.lang]];
 const nm=s=>s.n[LI[S.lang]];
-const esc=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const RANGE=/(#?\d+(?:[.,]\d+)?(?:\s?[–\/-]\s?#?\d+(?:[.,]\d+)?)+)/g;
+const esc=v=>{let x=String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));return S.lang==="en"?x:x.replace(RANGE,"\u2066$1\u2069")};
 const hourF=new Intl.DateTimeFormat("en-GB",{hour:"2-digit",hourCycle:"h23",timeZone:TZ});
 const monthF=new Intl.DateTimeFormat("en-GB",{month:"numeric",timeZone:TZ});
 const hourOf=t=>Number(hourF.format(t));
@@ -511,7 +649,7 @@ function setData(ts,store,at,cached){
  TIMES=ts.map(s=>new Date(s+"Z"));TS=ts;D=store;LOADED={at,cached};
  const now=Date.now();NOW=0;TIMES.forEach((t,i)=>{if(+t<=now)NOW=i});
  if(!D[S.spot])S.spot=Object.keys(D)[0];
- S.sel=NOW;
+ S.sel=NOW;applyHash();
  MOON=moonEvents(new Date(+TIMES[0]-dayMs),new Date(+TIMES[TIMES.length-1]+dayMs));
  $("banner").innerHTML=cached?`<div class="banner">${tx().cached} ${fmtDT(new Date(at))}</div>`:"";
  $("app").hidden=false;$("moonOffline").hidden=true;render();
@@ -643,7 +781,7 @@ function render(){
  document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==="en"?"ltr":"rtl";
  document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===S.lang));
  $("title").textContent=tx().title;$("tag").textContent=tx().tag;$("refresh").textContent=tx().refresh;
- renderSci();
+ renderSci();renderInstall();
  if(!LOADED){$("upd").textContent="";renderOffline();return}
  $("upd").textContent=`${tx().upd}: ${fmtDT(new Date(LOADED.at))}`;
  LEARN=learnStats();
@@ -651,7 +789,7 @@ function render(){
  const spot=spotById(S.spot),d=D[spot.id],i=S.sel;
  const R={};allSpots().forEach(s=>{if(D[s.id])R[s.id]=evalAt(s,i)});
  renderMap(R);renderScore(spot,R[spot.id]);renderTimeline(spot);
- renderMoon(i);renderTide(spot,d,i);renderWind(spot,d,i);renderPres(d,i);renderWaves(d,i);renderClar(spot,i);renderFish(spot,d,i,R[spot.id]);renderLog();renderMapTools();
+ renderMoon(i);renderTide(spot,d,i);renderWind(spot,d,i);renderPres(d,i);renderWaves(d,i);renderClar(spot,i);renderFish(spot,d,i,R[spot.id]);renderLog();renderMapTools();if(STATIC_LANG!==S.lang){renderRigs();renderRules();STATIC_LANG=S.lang}
 }
 function renderMap(R){
  const X=lon=>(lon-34.45)*.845*230,Y=lat=>(33.15-lat)*230;
@@ -669,6 +807,8 @@ function renderMap(R){
    const cls=["lmk",sp.id===S.spot?"sel":"",sp.id===best?"best":"",sp.custom?"mine":""].join(" ");
    const ic=L.divIcon({className:"lmkicon",html:`<div class="lmkw"><div class="${cls}" style="background:${col(c)}">${r.unsafe?"!":r.total}</div></div>`,iconSize:[40,40],iconAnchor:[20,20]});
    LMK.push(L.marker([sp.lat,sp.lon],{icon:ic,title:nm(sp),zIndexOffset:sp.id===S.spot?1000:0}).addTo(LM).on("click",()=>{if(addMode){pendingSpot={lat:sp.lat,lon:sp.lon,type:"rock",name:""};addMode=false;render();return}S.spot=sp.id;ss("sdp-spot",S.spot);mapMsg="";render()}));});
+  RES.forEach(rs=>{const L_=LI[S.lang],ic=L.divIcon({className:"lmkicon",html:`<div class="lmkw"><div class="rmk">🚫</div></div>`,iconSize:[40,40],iconAnchor:[20,20]});
+   LMK.push(L.marker([rs.lat,rs.lon],{icon:ic,title:rs.n[L_],zIndexOffset:-500}).addTo(LM).bindPopup(`<div dir="auto"><b>${esc(rs.n[L_])}</b><br>${esc(rs.t[L_])}<br><a href="https://www.govmap.gov.il" target="_blank" rel="noopener">govmap.gov.il</a></div>`))});
   if(pendingSpot)LMK.push(L.circleMarker([pendingSpot.lat,pendingSpot.lon],{radius:10,color:"#FFE27A",weight:3,fillOpacity:.25}).addTo(LM));
  }
  $("tMap").textContent=tx().map;
@@ -702,7 +842,8 @@ function renderScore(spot,r){
  <div class="why">${ups.length?`<h3 style="color:${col("green")}">▲ ${tx().up}</h3><ul>${ups.map(x=>x[1]).join("")}</ul>`:""}${downs.length?`<h3 style="color:${col("red")}">▼ ${tx().down}</h3><ul>${downs.map(x=>x[1]).join("")}</ul>`:""}</div>
  ${r.tune?`<div class="tune">🧠 ${esc(tx().tuned((r.tune.v>0?"+":"")+r.tune.v,tx().fn[r.tune.top]))}</div>`:""}
  <h3 style="font-size:.95rem;margin:14px 0 0">${tx().factors}</h3><div class="fgrid">${fg}</div>
- <button class="btn solid" id="logHere" style="width:100%;margin-top:14px">${tx().logHere}</button>`;
+ ${ruleNote(spot)}
+  <div class="sharebtns"><button class="btn solid" id="logHere">${tx().logHere}</button><button class="btn" id="shareScore">↗ ${tx().share}</button></div>`;
 }
 function renderTimeline(spot){
  $("tTimeline").textContent=tx().timeline;$("backNow").textContent=tx().backNow;$("backNow").hidden=S.sel===NOW;
@@ -797,7 +938,7 @@ function renderFish(spot,d,i,r){
   s+=f.water==="murky"?((cl===1||cl===2)?10:3):f.water==="clear"?((cl<=1)?10:3):7;
   s+=f.light.includes(lt)?8:3; s+=f.hab.some(h=>spot.hab.includes(h))?15:2;
   return [Math.min(100,s),f]}).sort((a,b)=>b[0]-a[0]).slice(0,6);
- $("fishPanel").innerHTML=`<h2>${tx().fish}</h2>`+fit.map(([s,f])=>`<div class="fish"><div class="top"><b>${esc(f.n[L])} <i>${esc(f.sci)}</i></b><span class="pill" style="background:${col(scoreCol(s))}">${tx().match} ${s}%</span></div><div class="bait">🎣 ${tx().bait}: ${esc(f.b[L])}</div>${f.note?`<div class="note">⚠ ${esc(f.note[L])}</div>`:""}</div>`).join("");
+ $("fishPanel").innerHTML=`<h2>${tx().fish}</h2>`+fit.map(([s,f])=>`<div class="fish"><div class="top"><b>${esc(f.n[L])} <i>${esc(f.sci)}</i></b><span class="pill" style="background:${col(scoreCol(s))}">${tx().match} ${s}%</span></div><div class="bait">🎣 ${tx().bait}: ${esc(f.b[L])}</div><div class="small">📏 ${esc(f.min?tx().minSize(f.min):tx().noMin)} · <button class="linkbtn" data-rig="${f.rig}">🪝 ${esc(RIGS[f.rig].n[L])}</button></div>${f.note?`<div class="note">⚠ ${esc(f.note[L])}</div>`:""}</div>`).join("");
 }
 function renderSci(){$("sciPanel").innerHTML=`<h2>${tx().sciT}</h2>`+tx().sci.map((p,k)=>(k===7?`<p>${esc(tx().sciLog)}</p>`:"")+`<p class="${k>=7?"small":""}">${esc(p)}</p>`).join("")}
 
@@ -819,7 +960,7 @@ function initLeaflet(){
 }
 function toggleLayer(){if(!LM)return;if(useSat){LM.removeLayer(BASES.sat);BASES.street.addTo(LM)}else{LM.removeLayer(BASES.street);BASES.sat.addTo(LM)}useSat=!useSat;renderMapTools()}
 function renderMapTools(){
- const t=tx();$("gpsBtn").textContent=t.gps;$("addSpotBtn").textContent=addMode?t.cancel:t.addSpot;$("layerBtn").textContent=useSat?t.layerSat:t.layerStreet;
+ const t=tx();$("resLegend").textContent=LM?t.mapReserves:"";$("gpsBtn").textContent=t.gps;$("addSpotBtn").textContent=addMode?t.cancel:t.addSpot;$("layerBtn").textContent=useSat?t.layerSat:t.layerStreet;
  $("mapMsg").innerHTML=addMode?`<div class="msg">${t.addHint}<br><button class="btn" id="useLocBtn">📍 ${t.useLoc}</button></div>`:mapMsg?`<div class="msg">${esc(mapMsg)}</div>`:"";
  $("spotForm").innerHTML=pendingSpot?`<div class="form"><div><label for="sName">${t.spotName}</label><input id="sName" type="text" maxlength="40" value="${esc(pendingSpot.name||"")}"></div>
   <div><label>${t.spotType}</label><div class="chips">${["rock","sand","harbor"].map(k=>`<button class="chip" data-ty="${k}" aria-pressed="${pendingSpot.type===k}">${t.types[k]}</button>`).join("")}</div></div>
@@ -850,14 +991,17 @@ function deleteSpot(){const id=S.spot;ss("sdp-myspots",MY().filter(s=>s.id!==id)
 let logOpen=false,logPre=null,logMsg="";
 const pad2=n=>String(n).padStart(2,"0");
 const dtLocal=ms=>{const d=new Date(ms);return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`};
-function openLog(spot,t){logOpen=true;logMsg="";logPre={spot,t:Math.min(t,Date.now()),fish:-1,count:0,bait:"",note:""};renderLog()}
+function openLog(spot,t){logOpen=true;logMsg="";logPre={spot,t:Math.min(t,Date.now()),fish:-1,count:0,bait:"",note:"",len:null,photo:null,photoURL:null};renderLog()}
 function saveTrip(){
  const p=logPre,s=spotById(p.spot)||spotById(S.spot),t=p.t||Date.now();
  const e={id:Date.now(),spot:s.id,name:nm(s),t,fish:p.fish,count:p.fish===-1?0:Math.max(1,p.count||1),bait:(p.bait||"").trim().slice(0,60),note:(p.note||"").trim().slice(0,80)};
  if(TIMES.length&&D[s.id]){let bi=-1,bd=1e15;TIMES.forEach((x,k)=>{const dd=Math.abs(x-t);if(dd<bd){bd=dd;bi=k}});
   if(bd<=90*60000){const r=evalAt(s,bi,true),d=D[s.id];e.sc=r.total;e.st={};Object.entries(r.F).forEach(([k,f])=>{if(f.st!=="na")e.st[k]=f.st});e.wave=d.wave[bi];e.wind=d.wind[bi];e.dir=d.dir[bi]}}
+ e.len=p.len||null;
+ if(p.photo){e.ph=true;PHBLOB[e.id]=p.photo;PHURL[e.id]=p.photoURL;IDB.put(String(e.id),p.photo).catch(()=>{})}
  const log=ls("sdp-log",[]);log.unshift(e);ss("sdp-log",log);
- logOpen=false;logPre=null;logMsg=e.st?tx().saved:tx().noSnap;render();
+ const mn=FISH[p.fish]&&FISH[p.fish].min;
+ logOpen=false;logPre=null;logMsg=(e.st?tx().saved:tx().noSnap)+(e.len&&mn&&e.len<mn?" ⚠ "+tx().under(mn):"");render();
 }
 function renderLog(){
  const t=tx(),Li=LI[S.lang],Lr=LEARN||learnStats();let h=`<h2>${t.logT}</h2>`;
@@ -867,6 +1011,8 @@ function renderLog(){
    <div><label for="fWhen">${t.when}</label><input type="datetime-local" id="fWhen" value="${dtLocal(p.t)}"></div></div>
    <div class="row2"><div><label for="fFish">${t.result}</label><select id="fFish"><option value="-1">${t.nofish}</option>${FISH.map((f,k)=>`<option value="${k}"${p.fish===k?" selected":""}>${esc(f.n[Li])}</option>`).join("")}<option value="99"${p.fish===99?" selected":""}>${t.other}</option></select></div>
    <div><label for="fCount">${t.count}</label><input type="number" id="fCount" min="0" max="99" inputmode="numeric" value="${p.count}"></div></div>
+   <div class="row2"><div><label for="fLen">${t.lenL}</label><input type="number" id="fLen" min="0" max="300" step="0.5" inputmode="decimal" value="${p.len||""}"><div class="sizemsg" id="sizeMsg">${sizeMsg(p)}</div></div>
+   <div><label>${t.photoL}</label><label class="btn filebtn">${p.photo?t.photoChange:t.photo}<input type="file" id="fPhoto" accept="image/*"></label>${p.photoURL?`<img class="phprev" src="${p.photoURL}" alt="">`:""}</div></div>
    <div><label for="fBait">${t.baitUsed}</label><input type="text" id="fBait" maxlength="60" value="${esc(p.bait)}"></div>
    <div><label for="fNote">${t.notes}</label><input type="text" id="fNote" maxlength="80" value="${esc(p.note)}"></div>
    <div class="row2"><button class="btn solid" id="logSave">${t.saveTrip}</button><button class="btn" id="logCancel">${t.cancel}</button></div></div>`}
@@ -889,12 +1035,12 @@ function renderLog(){
    h+=`<p class="small" style="margin-top:10px">${esc(t.scoreCheck(A,B))} ${A>B+3?t.scoreGood:t.scoreBad}</p>`}
  }
  h+=Lr.snap.length>=5?`<div class="chips"><button class="chip" id="tuneBtn" aria-pressed="${Lr.on}">🧠 ${t.tuneL}: ${Lr.on?t.tuneOn:t.tuneOff}</button></div>`:`<p class="small" style="margin-top:8px">${t.tuneNeed}</p>`;
- if(n){h+=`<h3>${t.recent}</h3>`+Lr.log.slice(0,15).map(e=>{const s=spotById(e.spot),fishName=e.fish===-1?t.nofish:e.fish===99?t.other:(FISH[e.fish]?FISH[e.fish].n[Li]:t.other);
-  return `<div class="trip"><div><b>${esc(fishName)}${e.count>0?` × ${e.count}`:""}</b><div class="meta">${esc(fmtDM(new Date(e.t)))} · ${esc(s?nm(s):e.name)}${e.sc!=null?` · <span class="n">${e.sc}%</span>`:""}</div>
-  <div class="meta">${e.wave!=null?`<span class="n">${(+e.wave).toFixed(1)} m</span> · `:""}${e.wind!=null?`<span class="n">${Math.round(e.wind)} km/h</span> ${esc(dirName(e.dir||0))}`:""}${e.bait?" · 🎣 "+esc(e.bait):""}${e.note?" · "+esc(e.note):""}</div></div>
-  <button class="del" data-del="${Number(e.id)}">${t.del}</button></div>`}).join("")}
+  if(n){h+=`<h3>${t.recent}</h3>`+Lr.log.slice(0,15).map(e=>{const s=spotById(e.spot),fishName=e.fish===-1?t.nofish:e.fish===99?t.other:(FISH[e.fish]?FISH[e.fish].n[Li]:t.other),mn=FISH[e.fish]&&FISH[e.fish].min;
+   return `<div class="trip"><div><b>${esc(fishName)}${e.count>0?` × ${e.count}`:""}</b>${e.len?` <span class="n">📏 ${e.len} cm</span>${mn&&e.len<mn?` <span style="color:var(--red)">⚠</span>`:""}`:""}<div class="meta">${esc(fmtDM(new Date(e.t)))} · ${esc(s?nm(s):e.name)}${e.sc!=null?` · <span class="n">${e.sc}%</span>`:""}</div>
+   <div class="meta">${e.wave!=null?`<span class="n">${(+e.wave).toFixed(1)} m</span> · `:""}${e.wind!=null?`<span class="n">${Math.round(e.wind)} km/h</span> ${esc(dirName(e.dir||0))}`:""}${e.bait?" · 🎣 "+esc(e.bait):""}${e.note?" · "+esc(e.note):""}</div>${e.ph?`<img class="thumb" data-ph="${Number(e.id)}" alt="">`:""}</div>
+   <div class="tripbtns"><button class="del" data-share="${Number(e.id)}">↗ ${t.share}</button><button class="del" data-del="${Number(e.id)}">${t.del}</button></div></div>`}).join("")}
  h+=`<div class="chips"><button class="chip" id="expBtn">⬇ ${t.exp}</button><button class="chip" id="impBtn">⬆ ${t.imp}</button></div><input type="file" id="impFile" accept=".json,application/json" hidden><p class="small" style="margin-top:6px">${t.storeNote}</p>`;
- $("logPanel").innerHTML=h;
+ $("logPanel").innerHTML=h;loadThumbs();
 }
 function exportData(){
  const blob=new Blob([JSON.stringify({app:"shore-day",v:1,log:ls("sdp-log",[]),spots:MY()})],{type:"application/json"});
@@ -912,15 +1058,88 @@ function importData(file){
 }
 function formInput(e){const id=e.target.id,v=e.target.value;
  if(id==="sName"&&pendingSpot){pendingSpot.name=v;return}
+ if(id==="impFile"){if(e.type==="change"&&e.target.files[0])importData(e.target.files[0]);return}
  if(!logOpen||!logPre)return;
  if(id==="fSpot")logPre.spot=v;
  else if(id==="fWhen")logPre.t=new Date(v).getTime()||logPre.t;
- else if(id==="fFish"){logPre.fish=+v;const c=$("fCount");if(logPre.fish===-1){logPre.count=0;c.value=0}else if(!(logPre.count>0)){logPre.count=1;c.value=1}}
+ else if(id==="fFish"){logPre.fish=+v;const c=$("fCount");if(logPre.fish===-1){logPre.count=0;c.value=0}else if(!(logPre.count>0)){logPre.count=1;c.value=1}const sm=$("sizeMsg");if(sm)sm.innerHTML=sizeMsg(logPre)}
+ else if(id==="fLen"){logPre.len=Math.max(0,Math.min(300,parseFloat(v)||0))||null;const sm=$("sizeMsg");if(sm)sm.innerHTML=sizeMsg(logPre)}
+ else if(id==="fPhoto"){if(e.type==="change"&&e.target.files[0])compress(e.target.files[0]).then(b=>{if(!logPre)return;if(logPre.photoURL)URL.revokeObjectURL(logPre.photoURL);logPre.photo=b;logPre.photoURL=URL.createObjectURL(b);renderLog()}).catch(()=>{})}
  else if(id==="fCount")logPre.count=Math.max(0,Math.min(99,+v||0));
  else if(id==="fBait")logPre.bait=v;else if(id==="fNote")logPre.note=v;
- else if(id==="impFile"&&e.type==="change"&&e.target.files[0])importData(e.target.files[0]);
 }
 document.addEventListener("input",formInput);document.addEventListener("change",formInput);
+
+// ================= photos, rigs, rules, share, install =================
+let STATIC_LANG=null;const PHURL={},PHBLOB={};
+const IDB={db:null,open(){return this.db?Promise.resolve(this.db):new Promise((res,rej)=>{if(!window.indexedDB)return rej(new Error("no idb"));const r=indexedDB.open("shoreday",1);r.onupgradeneeded=()=>r.result.createObjectStore("photos");r.onsuccess=()=>{this.db=r.result;res(this.db)};r.onerror=()=>rej(r.error)})},
+ async tx(mode,fn){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction("photos",mode),st=t.objectStore("photos"),rq=fn(st);t.oncomplete=()=>res(rq&&rq.result);t.onerror=()=>rej(t.error)})},
+ put(k,v){return this.tx("readwrite",st=>st.put(v,k))},get(k){return this.tx("readonly",st=>st.get(k))},del(k){return this.tx("readwrite",st=>st.delete(k))}};
+function compress(file){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);
+ img.onload=()=>{const m=1280,sc=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
+  c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(new Error("blob")),"image/jpeg",.75)};
+ img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error("img"))};img.src=u})}
+function loadThumbs(){document.querySelectorAll("img[data-ph]").forEach(async im=>{const id=im.dataset.ph;
+ if(!PHURL[id]){try{const b=await IDB.get(String(id));if(b){PHBLOB[id]=b;PHURL[id]=URL.createObjectURL(b)}}catch(e){}}
+ if(PHURL[id])im.src=PHURL[id];else im.remove()})}
+function openViewer(id){const u=PHURL[id];if(!u)return;const v=$("viewer");
+ v.innerHTML=`<img src="${u}" alt=""><div class="vb"><button class="btn" data-share="${esc(id)}">↗ ${tx().share}</button><button class="btn" id="vClose">${tx().close}</button></div>`;v.hidden=false}
+function sizeMsg(p){const t=tx(),f=FISH[p.fish];if(!f)return"";const m=f.min;
+ if(m==null)return esc(t.noMinMsg);
+ if(!p.len)return esc(t.minSize(m));
+ return p.len<m?`<span style="color:var(--red)">⚠ ${esc(t.under(m))}</span>`:`<span style="color:var(--green)">✓ ${esc(t.legal(m))}</span>`}
+function ruleNote(spot){const L=LI[S.lang];
+ if(SPOT_RULE[spot.id])return `<div class="rnote">⚖️ ${esc(SPOT_RULE[spot.id][L])}</div>`;
+ if(spot.custom){const r=RES.find(x=>dist(spot.lat,spot.lon,x.lat,x.lon)<2.5);if(r)return `<div class="rnote">⚖️ ${esc(tx().reserveWarn(r.n[L]))}</div>`}
+ return ""}
+function rigSVG(id){
+ const r=RIGS[id],lab=r.parts[LI[S.lang]],cx=96,H={line:38,leader:44,float:46,shots:32,hook:36,sinker:38,swivel:22,dropper:44,wire:44,lure:46,livebait:46};
+ let y=6,b="",lb="";const ink="var(--ink)";
+ r.lay.forEach((k,i)=>{const h=H[k],m=y+h/2;
+  if(k==="line"||k==="leader")b+=`<line x1="${cx}" y1="${y}" x2="${cx}" y2="${y+h}" stroke="${ink}" stroke-width="${k==="line"?1.8:1.1}"/>`;
+  else if(k==="wire")b+=`<line x1="${cx}" y1="${y}" x2="${cx}" y2="${y+h}" stroke="#8A949C" stroke-width="3"/>`;
+  else if(k==="hook")b+=`<path d="M${cx} ${y} L${cx} ${m+6} q0 9 -8 9 q-7 0 -7 -8" fill="none" stroke="${ink}" stroke-width="2"/><circle cx="${cx-6}" cy="${m+12}" r="4" fill="#E9C46A"/>`;
+  else if(k==="lure")b+=`<line x1="${cx}" y1="${y}" x2="${cx}" y2="${m-16}" stroke="${ink}"/><ellipse cx="${cx}" cy="${m}" rx="8" ry="16" fill="#C9D1D9" stroke="#6B7680"/><path d="M${cx} ${m+16} v6 M${cx-6} ${m+24} q6 5 12 0" fill="none" stroke="${ink}" stroke-width="1.4"/>`;
+  else if(k==="livebait")b+=`<path d="M${cx} ${y} L${cx} ${m-3} q0 7 -6 7 q-5 0 -5 -6" fill="none" stroke="${ink}" stroke-width="2"/><path d="M${cx-6} ${m+6} q16 -12 34 0 q-18 12 -34 0z" fill="#9FB4C2"/><path d="M${cx+27} ${m+6} l9 -7 v14z" fill="#9FB4C2"/><circle cx="${cx-1}" cy="${m+4}" r="1.6" fill="#223"/>`;
+  else{b+=`<line x1="${cx}" y1="${y}" x2="${cx}" y2="${y+h}" stroke="${ink}" stroke-width="1.2"/>`;
+   if(k==="float")b+=`<rect x="${cx-7}" y="${m-20}" width="14" height="40" rx="7" fill="#fff" stroke="#333"/><rect x="${cx-7}" y="${m-20}" width="14" height="18" rx="7" fill="#E74C3C"/>`;
+   if(k==="shots")b+=[-9,0,9].map(d=>`<circle cx="${cx}" cy="${m+d}" r="3.6" fill="#555"/>`).join("");
+   if(k==="sinker")b+=`<path d="M${cx} ${m-14} C${cx+10} ${m-4} ${cx+10} ${m+10} ${cx} ${m+14} C${cx-10} ${m+10} ${cx-10} ${m-4} ${cx} ${m-14}Z" fill="#7F8C8D"/>`;
+   if(k==="swivel")b+=`<circle cx="${cx}" cy="${m-4}" r="3.5" fill="var(--surface)" stroke="#333"/><circle cx="${cx}" cy="${m+4}" r="3.5" fill="var(--surface)" stroke="#333"/>`;
+   if(k==="dropper")b+=`<path d="M${cx} ${m-10} L${cx-46} ${m-4}" stroke="${ink}" fill="none"/><path d="M${cx-46} ${m-4} L${cx-46} ${m+6} q0 8 -7 8 q-6 0 -6 -7" fill="none" stroke="${ink}" stroke-width="1.8"/><ellipse cx="${cx-50}" cy="${m+11}" rx="5" ry="3" fill="#E8A0A0"/>`;}
+  lb+=`<line x1="${cx+14}" y1="${m}" x2="${cx+46}" y2="${m}" stroke="var(--muted)" stroke-dasharray="2 2"/><text x="${cx+52}" y="${m+4}" class="rl">${esc(lab[i])}</text>`;
+  y+=h});
+ return `<svg viewBox="0 0 380 ${y+10}" role="img" aria-label="${esc(r.n[LI[S.lang]])}">${b}${lb}</svg>`}
+function renderRigs(){const t=tx(),L=LI[S.lang],sep=S.lang==="ar"?"، ":", ";
+ $("rigPanel").innerHTML=`<h2>🪝 ${t.rigsT}</h2>`+Object.entries(RIGS).map(([id,r])=>`<details class="rig" id="rig-${id}"><summary>${esc(r.n[L])}</summary>${rigSVG(id)}<ol>${r.steps[L].map(x=>`<li>${esc(x)}</li>`).join("")}</ol><p class="small">${t.rigFor}: ${esc(FISH.filter(f=>f.rig===id).map(f=>f.n[L]).join(sep))}</p></details>`).join("")+`<p class="small" style="margin-top:8px">${t.rigNote}</p>`}
+function renderRules(){const t=tx(),L=LI[S.lang];
+ $("rulesPanel").innerHTML=`<h2>⚖️ ${t.rulesT}</h2><div class="rules"><ul>${t.rules.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+ <h3 style="font-size:.95rem;margin:14px 0 6px">${t.sizesT}</h3><table class="tbl">${SIZES.map(r=>`<tr><td>${esc(r.n[L]||r.n[0])}<br><i>${esc(r.sci)}</i></td><td><span class="n">${r.min} cm</span></td></tr>`).join("")}</table>
+ <p class="small" style="margin-top:8px">${t.noMinNote}</p><p class="small">${t.mapReserves}</p>
+ <p class="small">${t.srcT}<br><a href="https://www.gov.il/BlobFolder/legalinfo/fishing_regulations_2025/en/fish_Israel%20Fishing%20Regulation%20-%202020%20update.pdf" target="_blank" rel="noopener">gov.il</a> · <a href="https://static.parks.org.il/wp-content/uploads/2018/10/INFO-GUIDE-FISHING-ISRAEL.pdf" target="_blank" rel="noopener">parks.org.il</a> · <a href="https://www.govmap.gov.il" target="_blank" rel="noopener">govmap.gov.il</a></p>`}
+const appURL=()=>/^https?:$/.test(location.protocol)?location.href.split("#")[0]:"";
+async function shareText(text,files){
+ try{if(files&&navigator.canShare&&navigator.canShare({files})){await navigator.share({text,files});return}
+  if(navigator.share){await navigator.share({text});return}}catch(e){if(e&&e.name==="AbortError")return}
+ window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank","noopener");
+}
+function shareScore(){const spot=spotById(S.spot),d=D[spot.id],i=S.sel,r=evalAt(spot,i),t=tx();
+ const lb=r.unsafe?t.danger:t.lv[level(r.total)],wv=d.wave[i]!=null?d.wave[i].toFixed(1):"–",u=appURL();
+ shareText(t.shareScore(nm(spot),fmtDT(TIMES[i]),r.total,lb,wv,Math.round(d.wind[i]||0),dirName(d.dir[i]||0))+(u?`\n${u}#s=${spot.id}&h=${+TIMES[i]}`:""))}
+function shareCatch(id){const e=ls("sdp-log",[]).find(x=>String(x.id)===String(id));if(!e)return;
+ const t=tx(),L=LI[S.lang],s=spotById(e.spot),sn=s?nm(s):e.name,dt=fmtDM(new Date(e.t)),fn=e.fish===99?t.other:(FISH[e.fish]?FISH[e.fish].n[L]:t.other),u=appURL();
+ const text=(e.fish===-1?t.shareNo(sn,dt):t.shareCatch(fn,e.count,e.len,sn,dt))+(u?"\n"+u:"");
+ const b=PHBLOB[e.id];shareText(text,b?[new File([b],"catch.jpg",{type:"image/jpeg"})]:null)}
+let HASHED=false;
+function applyHash(){if(HASHED)return;HASHED=true;const h=new URLSearchParams(location.hash.slice(1)),sp=h.get("s"),tm=+h.get("h");
+ if(sp&&spotById(sp))S.spot=sp;
+ if(tm){let bi=-1,bd=1e15;TIMES.forEach((x,k)=>{const dd=Math.abs(x-tm);if(dd<bd){bd=dd;bi=k}});if(bi>=NOW&&bd<=36e5)S.sel=bi}}
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;renderInstall()});
+const isStandalone=()=>(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
+function renderInstall(){const c=$("installCard");if(!c)return;
+ if(isStandalone()||ls("sdp-inst",false)||!appURL()){c.innerHTML="";return}
+ c.innerHTML=`<div class="banner">📲 ${deferredPrompt?tx().installA:tx().installI}<div class="chips">${deferredPrompt?`<button class="chip" id="instBtn">${tx().installBtn}</button>`:""}<button class="chip" id="instX">${tx().dismiss}</button></div></div>`}
 
 // ================= events =================
 document.querySelector(".lang").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.lang=b.dataset.l;ss("sdp-lang",S.lang);
@@ -929,6 +1148,13 @@ document.querySelector(".lang").addEventListener("click",e=>{const b=e.target.cl
  render()});
 document.addEventListener("click",e=>{
  const q=sel=>e.target.closest(sel);
+ if(q("#vClose")||e.target.id==="viewer"){$("viewer").hidden=true;return}
+ const shr=q("[data-share]");if(shr){shareCatch(shr.dataset.share);return}
+ const th=q("img[data-ph]");if(th){openViewer(th.dataset.ph);return}
+ if(q("#shareScore")){shareScore();return}
+ const rg=q("[data-rig]");if(rg){const dd=$("rig-"+rg.dataset.rig);if(dd){dd.open=true;dd.scrollIntoView({behavior:"smooth",block:"start"})}return}
+ if(q("#instBtn")&&deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;renderInstall()});return}
+ if(q("#instX")){ss("sdp-inst",true);renderInstall();return}
  if(q("#gpsBtn")){nearest();return}
  if(q("#addSpotBtn")){if(!LM){useLoc();return}addMode=!addMode;pendingSpot=null;mapMsg="";render();return}
  if(q("#useLocBtn")){useLoc();return}
@@ -941,7 +1167,7 @@ document.addEventListener("click",e=>{
  if(q("#logHere")){openLog(S.spot,+TIMES[S.sel]);$("logPanel").scrollIntoView({behavior:"smooth",block:"start"});return}
  if(q("#logCancel")){logOpen=false;logPre=null;renderLog();return}
  if(q("#logSave")){saveTrip();return}
- const dl=q("[data-del]");if(dl){ss("sdp-log",ls("sdp-log",[]).filter(x=>Number(x.id)!==Number(dl.dataset.del)));logMsg="";render();return}
+ const dl=q("[data-del]");if(dl){const id=Number(dl.dataset.del);ss("sdp-log",ls("sdp-log",[]).filter(x=>Number(x.id)!==id));IDB.del(String(id)).catch(()=>{});if(PHURL[id]){URL.revokeObjectURL(PHURL[id]);delete PHURL[id];delete PHBLOB[id]}logMsg="";render();return}
  if(q("#tuneBtn")){ss("sdp-tune",!(LEARN&&LEARN.on));render();return}
  if(q("#expBtn")){exportData();return}
  if(q("#impBtn")){$("impFile").click();return}
@@ -952,6 +1178,7 @@ document.addEventListener("click",e=>{
 $("backNow").onclick=()=>{S.sel=NOW;render()};
 $("refresh").onclick=()=>loadAll();
 render();loadAll();
+if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>
