@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 :root{
   --bg:#E7EFEE;--surface:#FAFDFC;--ink:#10303A;--muted:#557078;--line:#CFDEDB;--sea:#0F6B78;
@@ -115,6 +117,31 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
 .fish .bait{font-size:.88rem;margin-top:2px}
 .fish .note{font-size:.82rem;color:var(--red)}
 .sci p{font-size:.9rem}
+.lmap{height:360px;border-radius:12px;overflow:hidden;margin-bottom:10px;background:var(--water)}
+.lmkicon{background:none;border:0}
+.lmkw{width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.lmk{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font:700 12px Rubik,sans-serif;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.55)}
+.lmk.sel{width:36px;height:36px;border:3px solid #FFE27A}
+.lmk.best{box-shadow:0 0 0 5px rgba(70,185,122,.65),0 1px 4px rgba(0,0,0,.55)}
+.lmk.mine{border-radius:9px}
+.maptools{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.msg{font-size:.88rem;margin:6px 0 10px;padding:8px 10px;border-radius:8px;background:var(--chip)}
+.msg .btn{margin-top:6px}
+.form{display:grid;gap:10px;margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:12px}
+.form label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:4px}
+.form input,.form select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:42px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn.solid{background:var(--sea);border-color:var(--sea);color:#fff}
+.mapwrap.noSvg{grid-template-columns:1fr}
+.mapwrap.noSvg .map{display:none}
+.trip{display:grid;grid-template-columns:1fr auto;gap:2px 8px;border-top:1px solid var(--line);padding:9px 0}
+.trip .meta{font-size:.8rem;color:var(--muted)}
+.del{font:inherit;font-size:.8rem;background:none;border:0;color:var(--muted);cursor:pointer;padding:6px;min-height:36px}
+.ins{border-top:1px solid var(--line);padding:7px 0;display:grid;grid-template-columns:1fr auto;gap:8px;font-size:.9rem;align-items:center}
+.ins span{color:var(--muted);font-size:.82rem}
+.tune{margin-top:10px;font-size:.88rem;padding:8px 10px;border-radius:10px;border:1px dashed var(--sea)}
+#logPanel h3{font-size:.95rem;margin:14px 0 6px}
+.leaflet-container{font:inherit}
 [hidden]{display:none!important}
 @media (max-width:380px){.mapwrap{grid-template-columns:120px 1fr}.map svg{width:120px}.ring{width:100px;height:100px}}
 @media (prefers-reduced-motion:no-preference){.pulse{animation:pl 1.8s ease-out infinite;transform-origin:center;transform-box:fill-box}@keyframes pl{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(2.2)}}}
@@ -135,7 +162,11 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
   <div id="app" hidden>
     <section class="panel">
       <h2 id="tMap"></h2>
-      <div class="mapwrap"><div class="map" id="map"></div><ol class="rank" id="rank"></ol></div>
+      <div id="lmap" class="lmap" dir="ltr" hidden></div>
+      <div class="maptools"><button class="btn" id="gpsBtn"></button><button class="btn" id="addSpotBtn"></button><button class="btn" id="layerBtn" hidden></button></div>
+      <div id="mapMsg"></div><div id="spotForm"></div>
+      <div class="mapwrap" id="mapwrap"><div class="map" id="map"></div><ol class="rank" id="rank"></ol></div>
+      <div id="spotDel"></div>
       <div id="alerts"></div>
     </section>
 
@@ -148,6 +179,7 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
       <div class="legend" id="scoreLegend"></div>
     </section>
 
+    <section class="panel" id="logPanel"></section>
     <section class="panel" id="moonPanel"></section>
     <section class="panel" id="tidePanel"></section>
     <section class="panel" id="windPanel"></section>
@@ -303,6 +335,55 @@ sst:{ok:["Sea temperature in the comfortable range.","טמפרטורת המים 
  off:["Sea temperature outside the usual range.","טמפרטורת המים מחוץ לטווח הרגיל.","حرارة البحر خارج المجال المعتاد."],
  na:["No sea temperature data.","אין נתוני טמפרטורת ים.","لا توجد بيانات حرارة البحر."]}};
 const LI={en:0,he:1,ar:2};
+const T2={
+en:{gps:"📍 Nearest beach",addSpot:"＋ Add my spot",layerSat:"Street map",layerStreet:"Satellite",addHint:"Tap the map exactly where you fish, or use your location.",useLoc:"Use my location",cancel:"Cancel",
+ spotName:"Spot name",spotType:"Type",types:{rock:"Rocks",sand:"Sand",harbor:"Harbor / breakwater"},saveSpot:"Save spot",delSpot:"Delete spot",
+ gpsNo:"Couldn’t get your location. Allow location for this site in your phone’s settings.",nearest:(n,km)=>`Nearest: ${n} (${km} km)`,nameNeeded:"Type a name first.",
+ logT:"My catch log",logBtn:"🎣 Log a trip",logHere:"🎣 Log a trip here",when:"When",spotL:"Spot",result:"What did you catch?",nofish:"No fish",other:"Other",count:"How many",
+ baitUsed:"Bait used",notes:"Notes",saveTrip:"Save trip",saved:"Saved. The conditions were added automatically.",noSnap:"Saved – no weather data for that time, so it counts for the spot only.",
+ logEmpty:"No trips yet. Log every trip – even with no fish. Trips without fish teach the app just as much.",learnT:"What your log shows",
+ needMore:n=>`Log ${n} more trip(s) to see your patterns.`,needSame:"Patterns show once your trips cover different conditions.",
+ summary:(n,p,f)=>`${n} trips · fish on ${p}% of them · ${f} fish in total`,bestFor:"Your best conditions",perTrip:"fish/trip",trips:"trips",
+ scoreCheck:(a,b)=>`App score on trips with fish: ${a}% · without fish: ${b}%.`,scoreGood:"The score matches your results.",scoreBad:"Not matching yet – keep logging and tuning will adjust it.",
+ tuneL:"Tune the score to my log",tuneNeed:"Personal tuning turns on after 5 trips logged on the day (with conditions).",tuneOn:"On",tuneOff:"Off",
+ tuned:(v,f)=>`Tuned to your log: ${v} points (mostly ${f})`,exp:"Back up",imp:"Restore backup",imported:n=>`Restored ${n} trips.`,badFile:"That file isn’t a Shore Day backup.",
+ storeNote:"Your log and spots are saved on this phone only. Back up now and then.",del:"Delete",recent:"Recent trips",
+ sciLog:"Your log (up to ±15 points): because the angler’s own choices matter most, after 5 logged trips the app compares your catches in each condition with your own average and nudges the score toward what works for you. Trips with no fish count too."},
+he:{gps:"📍 החוף הקרוב",addSpot:"＋ הוספת מקום שלי",layerSat:"מפת רחובות",layerStreet:"לוויין",addHint:"הקישו על המפה בדיוק במקום שבו אתם דגים, או השתמשו במיקום שלכם.",useLoc:"שימוש במיקום שלי",cancel:"ביטול",
+ spotName:"שם המקום",spotType:"סוג",types:{rock:"סלעים",sand:"חול",harbor:"נמל / שובר גלים"},saveSpot:"שמירת מקום",delSpot:"מחיקת מקום",
+ gpsNo:"לא ניתן לקבל מיקום. אפשרו גישה למיקום לאתר הזה בהגדרות הטלפון.",nearest:(n,km)=>`הכי קרוב: ${n} (${km} ק״מ)`,nameNeeded:"הקלידו שם קודם.",
+ logT:"יומן הדיג שלי",logBtn:"🎣 רישום יציאה",logHere:"🎣 רישום יציאה כאן",when:"מתי",spotL:"מקום",result:"מה תפסתם?",nofish:"בלי דגים",other:"אחר",count:"כמה",
+ baitUsed:"פיתיון",notes:"הערות",saveTrip:"שמירת יציאה",saved:"נשמר. התנאים נוספו אוטומטית.",noSnap:"נשמר – אין נתוני מזג אוויר לשעה הזו, לכן זה נחשב רק למקום.",
+ logEmpty:"עדיין אין יציאות. רשמו כל יציאה – גם בלי דגים. יציאות בלי דגים מלמדות את האפליקציה באותה מידה.",learnT:"מה היומן שלך מראה",
+ needMore:n=>`רשמו עוד ${n} יציאות כדי לראות דפוסים.`,needSame:"דפוסים יופיעו כשהיציאות שלך יהיו בתנאים שונים.",
+ summary:(n,p,f)=>`${n} יציאות · דגים ב־${p}% מהן · ${f} דגים בסך הכול`,bestFor:"התנאים הכי טובים שלך",perTrip:"דגים ליציאה",trips:"יציאות",
+ scoreCheck:(a,b)=>`ציון האפליקציה ביציאות עם דגים: ${a}% · בלי דגים: ${b}%.`,scoreGood:"הציון תואם את התוצאות שלך.",scoreBad:"עדיין לא תואם – המשיכו לרשום וההתאמה תתקן.",
+ tuneL:"התאמת הציון ליומן שלי",tuneNeed:"ההתאמה האישית נפתחת אחרי 5 יציאות שנרשמו באותו יום (עם תנאים).",tuneOn:"פועל",tuneOff:"כבוי",
+ tuned:(v,f)=>`מותאם ליומן שלך: ${v} נקודות (בעיקר ${f})`,exp:"גיבוי",imp:"שחזור גיבוי",imported:n=>`שוחזרו ${n} יציאות.`,badFile:"הקובץ הזה אינו גיבוי של יום חוף.",
+ storeNote:"היומן והמקומות נשמרים בטלפון הזה בלבד. גבו מדי פעם.",del:"מחיקה",recent:"יציאות אחרונות",
+ sciLog:"היומן שלך (עד ±15 נקודות): מכיוון שההחלטות של הדייג משפיעות הכי הרבה, אחרי 5 יציאות רשומות האפליקציה משווה את השלל שלך בכל תנאי לממוצע שלך ומזיזה את הציון לכיוון מה שעובד בשבילך. גם יציאות בלי דגים נחשבות."},
+ar:{gps:"📍 أقرب شاطئ",addSpot:"＋ أضف مكاني",layerSat:"خريطة شوارع",layerStreet:"قمر صناعي",addHint:"اضغط على الخريطة في المكان الذي تصطاد فيه بالضبط، أو استخدم موقعك.",useLoc:"استخدم موقعي",cancel:"إلغاء",
+ spotName:"اسم المكان",spotType:"النوع",types:{rock:"صخور",sand:"رمل",harbor:"ميناء / كاسر أمواج"},saveSpot:"احفظ المكان",delSpot:"احذف المكان",
+ gpsNo:"تعذّر تحديد موقعك. اسمح لهذا الموقع باستخدام الموقع من إعدادات الهاتف.",nearest:(n,km)=>`الأقرب: ${n} (${km} كم)`,nameNeeded:"اكتب اسمًا أولًا.",
+ logT:"سجل صيدي",logBtn:"🎣 سجّل رحلة",logHere:"🎣 سجّل رحلة هنا",when:"متى",spotL:"المكان",result:"ماذا اصطدت؟",nofish:"لا شيء",other:"أخرى",count:"كم",
+ baitUsed:"الطُّعم المستخدم",notes:"ملاحظات",saveTrip:"احفظ الرحلة",saved:"تم الحفظ. أُضيفت الظروف تلقائيًا.",noSnap:"تم الحفظ – لا توجد بيانات طقس لذلك الوقت، لذا تُحسب للمكان فقط.",
+ logEmpty:"لا توجد رحلات بعد. سجّل كل رحلة – حتى بدون سمك. الرحلات بدون سمك تُعلّم التطبيق بنفس القدر.",learnT:"ماذا يُظهر سجلك",
+ needMore:n=>`سجّل ${n} رحلات إضافية لرؤية أنماطك.`,needSame:"تظهر الأنماط عندما تكون رحلاتك في ظروف مختلفة.",
+ summary:(n,p,f)=>`${n} رحلات · سمك في ${p}% منها · ${f} سمكة إجمالًا`,bestFor:"أفضل ظروفك",perTrip:"سمكة/رحلة",trips:"رحلات",
+ scoreCheck:(a,b)=>`نتيجة التطبيق في رحلات فيها سمك: ${a}% · بدون سمك: ${b}%.`,scoreGood:"النتيجة تتوافق مع نتائجك.",scoreBad:"لا تتوافق بعد – استمر بالتسجيل والتعديل سيصحّحها.",
+ tuneL:"عدّل النتيجة حسب سجلي",tuneNeed:"التعديل الشخصي يعمل بعد 5 رحلات مسجّلة في نفس اليوم (مع الظروف).",tuneOn:"مفعّل",tuneOff:"متوقف",
+ tuned:(v,f)=>`مُعدّل حسب سجلك: ${v} نقاط (غالبًا ${f})`,exp:"نسخ احتياطي",imp:"استعادة النسخة",imported:n=>`تمت استعادة ${n} رحلات.`,badFile:"هذا الملف ليس نسخة احتياطية من يوم الشاطئ.",
+ storeNote:"السجل والأماكن محفوظة على هذا الهاتف فقط. خذ نسخة احتياطية من وقت لآخر.",del:"حذف",recent:"آخر الرحلات",
+ sciLog:"سجلك (حتى ±15 نقطة): لأن قرارات الصيّاد هي الأهم، بعد تسجيل 5 رحلات يقارن التطبيق صيدك في كل ظرف بمعدّلك، ويعدّل النتيجة نحو ما ينجح معك. الرحلات بدون سمك تُحسب أيضًا."}};
+Object.keys(T2).forEach(l=>Object.assign(T[l],T2[l]));
+const SL={light:{golden:["Dawn / dusk","שחר / שקיעה","الفجر / الغروب"],night:["Night","לילה","الليل"],overcast:["Cloudy day","יום מעונן","نهار غائم"],day:["Sunny day","יום שמשי","نهار مشمس"]},
+ dir:{offshore:["From land","מהיבשה","من البر"],onshore:["From the sea","מהים","من البحر"],cross:["Along the shore","לאורך החוף","موازية للشاطئ"],light:["Very light","חלשה מאוד","خفيفة جدًا"]},
+ moon:{major:["Major period","תקופה עיקרית","فترة رئيسية"],minor:["Minor period","תקופה משנית","فترة ثانوية"],none:["Between periods","בין התקופות","بين الفترات"]},
+ tide:{moving:["Moving water","מים בתנועה","ماء متحرك"],slack:["Slack water","מים עומדים","مياه راكدة"]},
+ sst:{ok:["Comfortable","נוחה","مريحة"],off:["Unusual","חריגה","غير معتادة"]},
+ waves:{flat:"< 0.2 m",small:"0.2–0.4 m",ideal:"0.4–1.0 m",rough:"1.0–1.3 m",high:"1.3–1.7 m",danger:"> 1.7 m"},
+ wind:{calm:"≤ 12 km/h",moderate:"12–20 km/h",fresh:"20–30 km/h",strong:"30–40 km/h",danger:"> 40 km/h"}};
+function stateLabel(k,v){if(k==="pres")return tx().trend[v]||v;if(k==="clar")return tx().clarL[["clear","slight","murky","muddy"].indexOf(v)]||v;const o=SL[k]&&SL[k][v];return o==null?v:Array.isArray(o)?o[LI[S.lang]]:o}
 
 // ================= spots & species =================
 // sea = bearing from shore toward open sea; slat/slon = point offshore for marine data
@@ -338,7 +419,11 @@ const $=id=>document.getElementById(id);
 function ls(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function ss(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 const S={lang:ls("sdp-lang","ar"),spot:ls("sdp-spot","jaf"),sel:null,clarO:null};
-let TIMES=[],D={},NOW=0,LOADED=null,MOON=null;
+let TIMES=[],TS=[],D={},NOW=0,LOADED=null,MOON=null,LEARN=null;
+const MY=()=>ls("sdp-myspots",[]);
+const allSpots=()=>SPOTS.concat(MY());
+const spotById=id=>allSpots().find(s=>s.id===id);
+const dist=(a,b,c,d)=>{const x=(d-b)*Math.cos((a+c)/2*rad),y=c-a;return Math.sqrt(x*x+y*y)*111.2};
 const tx=()=>T[S.lang];
 const fx=(k,st)=>FX[k][st][LI[S.lang]];
 const nm=s=>s.n[LI[S.lang]];
@@ -349,6 +434,7 @@ const hourOf=t=>Number(hourF.format(t));
 const fmtT=t=>t.toLocaleTimeString(LOC[S.lang],{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:TZ});
 const fmtD=t=>t.toLocaleDateString(LOC[S.lang],{weekday:"short",timeZone:TZ});
 const fmtDT=t=>fmtD(t)+" "+fmtT(t);
+const fmtDM=t=>t.toLocaleDateString(LOC[S.lang],{day:"numeric",month:"short",timeZone:TZ})+" "+fmtT(t);
 const col=c=>`var(--${c})`;
 
 // ================= astronomy (SunCalc method) =================
@@ -400,17 +486,19 @@ function align(times,src,key){
  const idx={};src.hourly.time.forEach((s,i)=>idx[s]=i);
  return times.map(s=>{const i=idx[s];const v=i==null?null:src.hourly[key][i];return v==null?null:v});
 }
+function build(ts,v){const {w,m,t}=v;
+ return {wind:align(ts,w,"wind_speed_10m"),dir:align(ts,w,"wind_direction_10m"),gust:align(ts,w,"wind_gusts_10m"),pres:align(ts,w,"pressure_msl"),
+  rain:align(ts,w,"precipitation"),cloud:align(ts,w,"cloud_cover"),code:align(ts,w,"weather_code"),wave:align(ts,m,"wave_height"),wper:align(ts,m,"wave_period"),
+  sst:align(ts,m,"sea_surface_temperature"),sea:align(ts,t,"sea_level_height_msl")};}
 async function loadAll(){
  $("banner").innerHTML=`<div class="banner">${tx().loading}</div>`;
+ const list=allSpots();
  try{
-  const res=await Promise.allSettled(SPOTS.map(loadSpot));
+  const res=await Promise.allSettled(list.map(loadSpot));
   const first=res.find(r=>r.status==="fulfilled");
   if(!first)throw new Error("no data");
   const ts=first.value.w.hourly.time,store={};
-  res.forEach((r,k)=>{if(r.status!=="fulfilled")return;const {w,m,t}=r.value;
-   store[SPOTS[k].id]={wind:align(ts,w,"wind_speed_10m"),dir:align(ts,w,"wind_direction_10m"),gust:align(ts,w,"wind_gusts_10m"),pres:align(ts,w,"pressure_msl"),
-    rain:align(ts,w,"precipitation"),cloud:align(ts,w,"cloud_cover"),code:align(ts,w,"weather_code"),wave:align(ts,m,"wave_height"),wper:align(ts,m,"wave_period"),
-    sst:align(ts,m,"sea_surface_temperature"),sea:align(ts,t,"sea_level_height_msl")};});
+  res.forEach((r,k)=>{if(r.status==="fulfilled")store[list[k].id]=build(ts,r.value)});
   ss("sdp-cache",{at:Date.now(),ts,store});
   setData(ts,store,Date.now(),false);
  }catch(e){
@@ -420,7 +508,7 @@ async function loadAll(){
  }
 }
 function setData(ts,store,at,cached){
- TIMES=ts.map(s=>new Date(s+"Z"));D=store;LOADED={at,cached};
+ TIMES=ts.map(s=>new Date(s+"Z"));TS=ts;D=store;LOADED={at,cached};
  const now=Date.now();NOW=0;TIMES.forEach((t,i)=>{if(+t<=now)NOW=i});
  if(!D[S.spot])S.spot=Object.keys(D)[0];
  S.sel=NOW;
@@ -443,7 +531,7 @@ function lightAt(i,cloud){
  const t=TIMES[i],st=sunTimes(t,32.1,34.8),m=Math.min(Math.abs(t-st.rise),Math.abs(t-st.set))/6e4;
  if(m<=90)return "golden"; if(t<st.rise||t>st.set)return "night"; return (cloud!=null&&cloud>=70)?"overcast":"day";
 }
-function evalAt(s,i){
+function evalAt(s,i,raw){
  const d=D[s.id],F={},warns=[];let unsafe=false;
  const wv=d.wave[i];
  if(wv==null)F.waves={p:11,m:22,st:"na"};
@@ -474,9 +562,26 @@ function evalAt(s,i){
  const sst=d.sst[i];
  F.sst=sst==null?{p:2,m:3,st:"na"}:(sst>=16&&sst<=28?{p:3,m:3,st:"ok"}:{p:1,m:3,st:"off"});
  if(d.code[i]!=null&&d.code[i]>=95)unsafe=true;
- let total=Object.values(F).reduce((a,f)=>a+f.p,0);
- total=Math.max(0,Math.min(100,total));
- return {total,F,unsafe};
+ let total=Object.values(F).reduce((a,f)=>a+f.p,0),tune=null;
+ if(!raw){tune=tuneFor(F);if(tune)total+=tune.v}
+ total=Math.max(0,Math.min(100,Math.round(total)));
+ return {total,F,unsafe,tune};
+}
+// ---------- learning from the catch log ----------
+function learnStats(){
+ const log=ls("sdp-log",[]),snap=log.filter(e=>e.st),fishOf=e=>Math.min(10,e.count||0);
+ const avg=snap.length?snap.reduce((a,e)=>a+fishOf(e),0)/snap.length:0,st={};
+ snap.forEach(e=>Object.entries(e.st).forEach(([k,v])=>{st[k]=st[k]||{};const o=st[k][v]=st[k][v]||{n:0,f:0};o.n++;o.f+=fishOf(e)}));
+ return {log,snap,avg,st,fishOf,on:ls("sdp-tune",true)};
+}
+function tuneFor(F){
+ const L=LEARN;if(!L||!L.on||L.snap.length<5||L.avg<=0)return null;
+ let v=0,top=null,tb=0;
+ Object.entries(F).forEach(([k,f])=>{const o=L.st[k]&&L.st[k][f.st];if(!o||o.n<2)return;
+  const rate=(o.f+L.avg*2)/(o.n+2),b=Math.max(-.4*f.m,Math.min(.4*f.m,(rate/L.avg-1)*f.m*.6));
+  v+=b;if(Math.abs(b)>Math.abs(tb)){tb=b;top=k}});
+ v=Math.max(-15,Math.min(15,v));
+ return Math.abs(v)<.5?null:{v:Math.round(v),top};
 }
 function presTrend(d,i){
  const p=d.pres;if(i<3||p[i]==null||p[i-3]==null)return "steady";
@@ -541,10 +646,12 @@ function render(){
  renderSci();
  if(!LOADED){$("upd").textContent="";renderOffline();return}
  $("upd").textContent=`${tx().upd}: ${fmtDT(new Date(LOADED.at))}`;
- const spot=SPOTS.find(s=>s.id===S.spot),d=D[spot.id],i=S.sel;
- const R={};SPOTS.forEach(s=>{if(D[s.id])R[s.id]=evalAt(s,i)});
+ LEARN=learnStats();
+ if(!D[S.spot]||!spotById(S.spot))S.spot=Object.keys(D).find(k=>spotById(k))||SPOTS[0].id;
+ const spot=spotById(S.spot),d=D[spot.id],i=S.sel;
+ const R={};allSpots().forEach(s=>{if(D[s.id])R[s.id]=evalAt(s,i)});
  renderMap(R);renderScore(spot,R[spot.id]);renderTimeline(spot);
- renderMoon(i);renderTide(spot,d,i);renderWind(spot,d,i);renderPres(d,i);renderWaves(d,i);renderClar(spot,i);renderFish(spot,d,i,R[spot.id]);
+ renderMoon(i);renderTide(spot,d,i);renderWind(spot,d,i);renderPres(d,i);renderWaves(d,i);renderClar(spot,i);renderFish(spot,d,i,R[spot.id]);renderLog();renderMapTools();
 }
 function renderMap(R){
  const X=lon=>(lon-34.45)*.845*230,Y=lat=>(33.15-lat)*230;
@@ -552,19 +659,27 @@ function renderMap(R){
  const pts=coast.map(([la,lo])=>`${X(lo).toFixed(1)},${Y(la).toFixed(1)}`);
  const ids=Object.keys(R),best=ids.reduce((a,b)=>(!R[b].unsafe&&(R[a].unsafe||R[b].total>R[a].total))?b:a,ids[0]);
  let s=`<svg viewBox="0 0 156 368" role="img" aria-label="${esc(tx().map)}"><polygon class="land" points="${pts.join(" ")} ${X(35.25)},${Y(31.55)} ${X(35.25)},${Y(33.15)}"/><polyline class="coast" points="${pts.join(" ")}"/>`;
- SPOTS.forEach(sp=>{if(!R[sp.id])return;const r=R[sp.id],x=X(sp.lon)-4,y=Y(sp.lat),c=r.unsafe?"red":scoreCol(r.total);
+ allSpots().forEach(sp=>{if(!R[sp.id])return;const r=R[sp.id],x=X(sp.lon)-4,y=Y(sp.lat),c=r.unsafe?"red":scoreCol(r.total);
   if(sp.id===best)s+=`<circle class="pulse" cx="${x}" cy="${y}" r="9" fill="none" stroke="${col("green")}" stroke-width="2"/>`;
-  s+=`<g class="mk" data-s="${sp.id}"><circle cx="${x}" cy="${y}" r="9" fill="${col(c)}" stroke="${sp.id===S.spot?"var(--ink)":"#fff"}" stroke-width="${sp.id===S.spot?2.5:1}"/><text x="${x}" y="${y+3}" text-anchor="middle">${r.unsafe?"!":r.total}</text></g>`});
+  s+=`<g class="mk" data-s="${esc(sp.id)}"><circle cx="${x}" cy="${y}" r="9" fill="${col(c)}" stroke="${sp.id===S.spot?"var(--ink)":"#fff"}" stroke-width="${sp.id===S.spot?2.5:1}"/><text x="${x}" y="${y+3}" text-anchor="middle">${r.unsafe?"!":r.total}</text></g>`});
  $("map").innerHTML=s+"</svg>";
+ if(initLeaflet()){
+  LMK.forEach(m=>m.remove());LMK=[];
+  allSpots().forEach(sp=>{if(!R[sp.id])return;const r=R[sp.id],c=r.unsafe?"red":scoreCol(r.total);
+   const cls=["lmk",sp.id===S.spot?"sel":"",sp.id===best?"best":"",sp.custom?"mine":""].join(" ");
+   const ic=L.divIcon({className:"lmkicon",html:`<div class="lmkw"><div class="${cls}" style="background:${col(c)}">${r.unsafe?"!":r.total}</div></div>`,iconSize:[40,40],iconAnchor:[20,20]});
+   LMK.push(L.marker([sp.lat,sp.lon],{icon:ic,title:nm(sp),zIndexOffset:sp.id===S.spot?1000:0}).addTo(LM).on("click",()=>{if(addMode){pendingSpot={lat:sp.lat,lon:sp.lon,type:"rock",name:""};addMode=false;render();return}S.spot=sp.id;ss("sdp-spot",S.spot);mapMsg="";render()}));});
+  if(pendingSpot)LMK.push(L.circleMarker([pendingSpot.lat,pendingSpot.lon],{radius:10,color:"#FFE27A",weight:3,fillOpacity:.25}).addTo(LM));
+ }
  $("tMap").textContent=tx().map;
- $("rank").innerHTML=SPOTS.filter(sp=>R[sp.id]).map(sp=>{const r=R[sp.id],c=r.unsafe?"red":scoreCol(r.total);
-  return `<li><button data-s="${sp.id}" aria-current="${sp.id===S.spot}"><span class="dot" style="background:${col(c)}"></span><span class="nm">${esc(nm(sp))}${sp.id===best?`<span class="best">${tx().bestNow}</span>`:""}</span><span class="pc">${r.unsafe?"⚠":r.total+"%"}</span></button></li>`}).join("");
+ $("rank").innerHTML=allSpots().filter(sp=>R[sp.id]).map(sp=>{const r=R[sp.id],c=r.unsafe?"red":scoreCol(r.total);
+  return `<li><button data-s="${esc(sp.id)}" aria-current="${sp.id===S.spot}"><span class="dot" style="background:${col(c)}"></span><span class="nm">${esc(nm(sp))}${sp.id===best?`<span class="best">${tx().bestNow}</span>`:""}</span><span class="pc">${r.unsafe?"⚠":r.total+"%"}</span></button></li>`}).join("");
  // alerts
  let al="";const safe=ids.filter(k=>!R[k].unsafe);
  if(safe.length>1){const worst=safe.reduce((a,b)=>R[b].total<R[a].total?b:a,safe[0]);
   if(R[best].total-R[worst].total>=15){let fk="waves",md=-1;Object.keys(R[best].F).forEach(k=>{const df=R[best].F[k].p-R[worst].F[k].p;if(df>md){md=df;fk=k}});
-   al+=`<div class="alert">${esc(tx().diff(nm(SPOTS.find(s=>s.id===best)),nm(SPOTS.find(s=>s.id===worst)),tx().fn[fk]))}</div>`}}
- ids.filter(k=>R[k].unsafe).forEach(k=>al+=`<div class="alert red">${esc(tx().unsafeAt(nm(SPOTS.find(s=>s.id===k))))}</div>`);
+   al+=`<div class="alert">${esc(tx().diff(nm(spotById(best)),nm(spotById(worst)),tx().fn[fk]))}</div>`}}
+ ids.filter(k=>R[k].unsafe).forEach(k=>al+=`<div class="alert red">${esc(tx().unsafeAt(nm(spotById(k))))}</div>`);
  $("alerts").innerHTML=al;
 }
 function ring(v,c){
@@ -585,7 +700,9 @@ function renderScore(spot,r){
  ${r.unsafe?`<div class="warn">${esc(tx().danger)}</div>`:""}
  <div class="bestwin">${tx().bestWin}: <b>${esc(fmtD(TIMES[bi]))} <span class="n">${esc(fmtT(TIMES[bi]))}–${esc(fmtT(new Date(+TIMES[bi]+2*36e5)))}</span></b> <span class="n">(${Math.round(bv)}%)</span></div>
  <div class="why">${ups.length?`<h3 style="color:${col("green")}">▲ ${tx().up}</h3><ul>${ups.map(x=>x[1]).join("")}</ul>`:""}${downs.length?`<h3 style="color:${col("red")}">▼ ${tx().down}</h3><ul>${downs.map(x=>x[1]).join("")}</ul>`:""}</div>
- <h3 style="font-size:.95rem;margin:14px 0 0">${tx().factors}</h3><div class="fgrid">${fg}</div>`;
+ ${r.tune?`<div class="tune">🧠 ${esc(tx().tuned((r.tune.v>0?"+":"")+r.tune.v,tx().fn[r.tune.top]))}</div>`:""}
+ <h3 style="font-size:.95rem;margin:14px 0 0">${tx().factors}</h3><div class="fgrid">${fg}</div>
+ <button class="btn solid" id="logHere" style="width:100%;margin-top:14px">${tx().logHere}</button>`;
 }
 function renderTimeline(spot){
  $("tTimeline").textContent=tx().timeline;$("backNow").textContent=tx().backNow;$("backNow").hidden=S.sel===NOW;
@@ -682,7 +799,128 @@ function renderFish(spot,d,i,r){
   return [Math.min(100,s),f]}).sort((a,b)=>b[0]-a[0]).slice(0,6);
  $("fishPanel").innerHTML=`<h2>${tx().fish}</h2>`+fit.map(([s,f])=>`<div class="fish"><div class="top"><b>${esc(f.n[L])} <i>${esc(f.sci)}</i></b><span class="pill" style="background:${col(scoreCol(s))}">${tx().match} ${s}%</span></div><div class="bait">🎣 ${tx().bait}: ${esc(f.b[L])}</div>${f.note?`<div class="note">⚠ ${esc(f.note[L])}</div>`:""}</div>`).join("");
 }
-function renderSci(){$("sciPanel").innerHTML=`<h2>${tx().sciT}</h2>`+tx().sci.map((p,k)=>`<p class="${k>=7?"small":""}">${esc(p)}</p>`).join("")}
+function renderSci(){$("sciPanel").innerHTML=`<h2>${tx().sciT}</h2>`+tx().sci.map((p,k)=>(k===7?`<p>${esc(tx().sciLog)}</p>`:"")+`<p class="${k>=7?"small":""}">${esc(p)}</p>`).join("")}
+
+// ================= map: leaflet, gps, my spots =================
+let LM=null,LMK=[],LGPS=null,addMode=false,useSat=true,BASES={},pendingSpot=null,mapMsg="";
+function initLeaflet(){
+ if(LM)return true;if(!window.L)return false;
+ try{
+  $("lmap").hidden=false;$("mapwrap").classList.add("noSvg");$("layerBtn").hidden=false;
+  LM=L.map("lmap").fitBounds([[31.62,34.5],[33.08,35.12]]);
+  BASES.sat=L.layerGroup([L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Imagery © Esri"}),
+   L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19})]);
+  BASES.street=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"});
+  BASES.sat.addTo(LM);
+  LM.on("click",e=>{if(!addMode)return;pendingSpot={lat:e.latlng.lat,lon:e.latlng.lng,type:"rock",name:""};addMode=false;render()});
+  setTimeout(()=>LM.invalidateSize(),250);
+  return true;
+ }catch(e){LM=null;$("lmap").hidden=true;$("mapwrap").classList.remove("noSvg");return false}
+}
+function toggleLayer(){if(!LM)return;if(useSat){LM.removeLayer(BASES.sat);BASES.street.addTo(LM)}else{LM.removeLayer(BASES.street);BASES.sat.addTo(LM)}useSat=!useSat;renderMapTools()}
+function renderMapTools(){
+ const t=tx();$("gpsBtn").textContent=t.gps;$("addSpotBtn").textContent=addMode?t.cancel:t.addSpot;$("layerBtn").textContent=useSat?t.layerSat:t.layerStreet;
+ $("mapMsg").innerHTML=addMode?`<div class="msg">${t.addHint}<br><button class="btn" id="useLocBtn">📍 ${t.useLoc}</button></div>`:mapMsg?`<div class="msg">${esc(mapMsg)}</div>`:"";
+ $("spotForm").innerHTML=pendingSpot?`<div class="form"><div><label for="sName">${t.spotName}</label><input id="sName" type="text" maxlength="40" value="${esc(pendingSpot.name||"")}"></div>
+  <div><label>${t.spotType}</label><div class="chips">${["rock","sand","harbor"].map(k=>`<button class="chip" data-ty="${k}" aria-pressed="${pendingSpot.type===k}">${t.types[k]}</button>`).join("")}</div></div>
+  <div class="row2"><button class="btn solid" id="sSave">${t.saveSpot}</button><button class="btn" id="sCancel">${t.cancel}</button></div></div>`:"";
+ const cur=spotById(S.spot);
+ $("spotDel").innerHTML=cur&&cur.custom?`<button class="btn" id="delSpot" style="margin-top:8px">✕ ${t.delSpot}: ${esc(nm(cur))}</button>`:"";
+}
+function gpsGet(cb){
+ if(!navigator.geolocation){mapMsg=tx().gpsNo;renderMapTools();return}
+ navigator.geolocation.getCurrentPosition(p=>cb(p.coords.latitude,p.coords.longitude),()=>{mapMsg=tx().gpsNo;renderMapTools()},{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
+}
+function showMe(la,lo,z){if(!LM)return;if(LGPS)LGPS.remove();LGPS=L.circleMarker([la,lo],{radius:7,color:"#fff",weight:2,fillColor:"#2F80ED",fillOpacity:1}).addTo(LM);LM.setView([la,lo],z)}
+function nearest(){gpsGet((la,lo)=>{const c=allSpots().filter(s=>D[s.id]);if(!c.length)return;
+ const n=c.reduce((a,b)=>dist(la,lo,b.lat,b.lon)<dist(la,lo,a.lat,a.lon)?b:a);
+ S.spot=n.id;ss("sdp-spot",S.spot);mapMsg=tx().nearest(nm(n),dist(la,lo,n.lat,n.lon).toFixed(1));showMe(la,lo,12);render()})}
+function useLoc(){gpsGet((la,lo)=>{pendingSpot={lat:la,lon:lo,type:"rock",name:""};addMode=false;showMe(la,lo,14);render()})}
+async function saveSpot(){
+ const name=(pendingSpot.name||"").trim();if(!name){mapMsg=tx().nameNeeded;renderMapTools();const el=$("sName");if(el)el.focus();return}
+ const {lat,lon}=pendingSpot,near=SPOTS.reduce((a,b)=>dist(lat,lon,b.lat,b.lon)<dist(lat,lon,a.lat,a.lon)?b:a),br=near.sea*rad,km=4.5;
+ const sp={id:"c"+Date.now(),custom:true,n:[name,name,name],lat,lon,slat:lat+km/111*Math.cos(br),slon:lon+km/(111*Math.cos(lat*rad))*Math.sin(br),sea:near.sea,turb:near.turb,hab:[pendingSpot.type]};
+ const my=MY();my.push(sp);ss("sdp-myspots",my);pendingSpot=null;mapMsg="";
+ try{const v=await loadSpot(sp);D[sp.id]=build(TS,v);const c=ls("sdp-cache",null);if(c){c.store[sp.id]=D[sp.id];ss("sdp-cache",c)}}catch(e){}
+ S.spot=sp.id;ss("sdp-spot",S.spot);render();
+}
+function deleteSpot(){const id=S.spot;ss("sdp-myspots",MY().filter(s=>s.id!==id));delete D[id];S.spot=SPOTS[0].id;render()}
+
+// ================= catch log =================
+let logOpen=false,logPre=null,logMsg="";
+const pad2=n=>String(n).padStart(2,"0");
+const dtLocal=ms=>{const d=new Date(ms);return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`};
+function openLog(spot,t){logOpen=true;logMsg="";logPre={spot,t:Math.min(t,Date.now()),fish:-1,count:0,bait:"",note:""};renderLog()}
+function saveTrip(){
+ const p=logPre,s=spotById(p.spot)||spotById(S.spot),t=p.t||Date.now();
+ const e={id:Date.now(),spot:s.id,name:nm(s),t,fish:p.fish,count:p.fish===-1?0:Math.max(1,p.count||1),bait:(p.bait||"").trim().slice(0,60),note:(p.note||"").trim().slice(0,80)};
+ if(TIMES.length&&D[s.id]){let bi=-1,bd=1e15;TIMES.forEach((x,k)=>{const dd=Math.abs(x-t);if(dd<bd){bd=dd;bi=k}});
+  if(bd<=90*60000){const r=evalAt(s,bi,true),d=D[s.id];e.sc=r.total;e.st={};Object.entries(r.F).forEach(([k,f])=>{if(f.st!=="na")e.st[k]=f.st});e.wave=d.wave[bi];e.wind=d.wind[bi];e.dir=d.dir[bi]}}
+ const log=ls("sdp-log",[]);log.unshift(e);ss("sdp-log",log);
+ logOpen=false;logPre=null;logMsg=e.st?tx().saved:tx().noSnap;render();
+}
+function renderLog(){
+ const t=tx(),Li=LI[S.lang],Lr=LEARN||learnStats();let h=`<h2>${t.logT}</h2>`;
+ if(!logOpen)h+=`<button class="btn solid" id="logOpen" style="width:100%">${t.logBtn}</button>`;
+ else{const p=logPre;
+  h+=`<div class="form"><div class="row2"><div><label for="fSpot">${t.spotL}</label><select id="fSpot">${allSpots().map(s=>`<option value="${esc(s.id)}"${s.id===p.spot?" selected":""}>${esc(nm(s))}</option>`).join("")}</select></div>
+   <div><label for="fWhen">${t.when}</label><input type="datetime-local" id="fWhen" value="${dtLocal(p.t)}"></div></div>
+   <div class="row2"><div><label for="fFish">${t.result}</label><select id="fFish"><option value="-1">${t.nofish}</option>${FISH.map((f,k)=>`<option value="${k}"${p.fish===k?" selected":""}>${esc(f.n[Li])}</option>`).join("")}<option value="99"${p.fish===99?" selected":""}>${t.other}</option></select></div>
+   <div><label for="fCount">${t.count}</label><input type="number" id="fCount" min="0" max="99" inputmode="numeric" value="${p.count}"></div></div>
+   <div><label for="fBait">${t.baitUsed}</label><input type="text" id="fBait" maxlength="60" value="${esc(p.bait)}"></div>
+   <div><label for="fNote">${t.notes}</label><input type="text" id="fNote" maxlength="80" value="${esc(p.note)}"></div>
+   <div class="row2"><button class="btn solid" id="logSave">${t.saveTrip}</button><button class="btn" id="logCancel">${t.cancel}</button></div></div>`}
+ if(logMsg)h+=`<div class="msg">${esc(logMsg)}</div>`;
+ const n=Lr.log.length;
+ if(!n)h+=`<p class="small" style="margin-top:10px">${t.logEmpty}</p>`;
+ else if(n<3)h+=`<p class="small" style="margin-top:10px">${t.needMore(3-n)}</p>`;
+ else{
+  const withF=Lr.log.filter(e=>e.count>0).length,tot=Lr.log.reduce((a,e)=>a+(e.count||0),0);
+  h+=`<h3>${t.learnT}</h3><p style="margin:0 0 6px">${esc(t.summary(n,Math.round(withF/n*100),tot))}</p><h3>${t.bestFor}</h3>`;
+  const rows=[];
+  const bestRow=(label,obj,lab)=>{if(Object.keys(obj).length<2)return;let bk=null,bv=-1;Object.entries(obj).forEach(([k,o])=>{if(o.n>=2&&o.f/o.n>bv){bv=o.f/o.n;bk=k}});
+   if(bk!=null)rows.push(`<div class="ins"><div><b>${esc(label)}:</b> <span class="${/(m|km\/h)$/.test(lab(bk))?"n":""}">${esc(lab(bk))}</span></div><span><b class="n">${bv.toFixed(1)}</b> ${t.perTrip} · ${obj[bk].n} ${t.trips}</span></div>`)};
+  const sp={};Lr.log.forEach(e=>{const o=sp[e.spot]=sp[e.spot]||{n:0,f:0,name:e.name};o.n++;o.f+=Lr.fishOf(e)});
+  bestRow(t.spotL,sp,k=>{const s=spotById(k);return s?nm(s):sp[k].name});
+  ["light","waves","wind","dir","pres","clar","moon","tide"].forEach(k=>{if(Lr.st[k])bestRow(t.fN[k],Lr.st[k],v=>stateLabel(k,v))});
+  h+=rows.length?rows.join(""):`<p class="small">${t.needSame}</p>`;
+  const a=Lr.snap.filter(e=>e.count>0&&e.sc!=null),b=Lr.snap.filter(e=>!e.count&&e.sc!=null);
+  if(a.length&&b.length){const av=x=>Math.round(x.reduce((s,e)=>s+e.sc,0)/x.length),A=av(a),B=av(b);
+   h+=`<p class="small" style="margin-top:10px">${esc(t.scoreCheck(A,B))} ${A>B+3?t.scoreGood:t.scoreBad}</p>`}
+ }
+ h+=Lr.snap.length>=5?`<div class="chips"><button class="chip" id="tuneBtn" aria-pressed="${Lr.on}">🧠 ${t.tuneL}: ${Lr.on?t.tuneOn:t.tuneOff}</button></div>`:`<p class="small" style="margin-top:8px">${t.tuneNeed}</p>`;
+ if(n){h+=`<h3>${t.recent}</h3>`+Lr.log.slice(0,15).map(e=>{const s=spotById(e.spot),fishName=e.fish===-1?t.nofish:e.fish===99?t.other:(FISH[e.fish]?FISH[e.fish].n[Li]:t.other);
+  return `<div class="trip"><div><b>${esc(fishName)}${e.count>0?` × ${e.count}`:""}</b><div class="meta">${esc(fmtDM(new Date(e.t)))} · ${esc(s?nm(s):e.name)}${e.sc!=null?` · <span class="n">${e.sc}%</span>`:""}</div>
+  <div class="meta">${e.wave!=null?`<span class="n">${(+e.wave).toFixed(1)} m</span> · `:""}${e.wind!=null?`<span class="n">${Math.round(e.wind)} km/h</span> ${esc(dirName(e.dir||0))}`:""}${e.bait?" · 🎣 "+esc(e.bait):""}${e.note?" · "+esc(e.note):""}</div></div>
+  <button class="del" data-del="${Number(e.id)}">${t.del}</button></div>`}).join("")}
+ h+=`<div class="chips"><button class="chip" id="expBtn">⬇ ${t.exp}</button><button class="chip" id="impBtn">⬆ ${t.imp}</button></div><input type="file" id="impFile" accept=".json,application/json" hidden><p class="small" style="margin-top:6px">${t.storeNote}</p>`;
+ $("logPanel").innerHTML=h;
+}
+function exportData(){
+ const blob=new Blob([JSON.stringify({app:"shore-day",v:1,log:ls("sdp-log",[]),spots:MY()})],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="shore-day-backup.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+function importData(file){
+ file.text().then(txt=>{let d;try{d=JSON.parse(txt)}catch(e){d=null}
+  if(!d||d.app!=="shore-day"||!Array.isArray(d.log)){logMsg=tx().badFile;renderLog();return}
+  const log=ls("sdp-log",[]),ids=new Set(log.map(x=>x.id));let added=0;
+  d.log.forEach(x=>{if(x&&typeof x.t==="number"&&!ids.has(x.id)){x.id=Number(x.id)||Date.now()+added;log.push(x);added++}});
+  log.sort((a,b)=>b.t-a.t);ss("sdp-log",log);
+  const my=MY(),sids=new Set(my.map(x=>x.id));
+  (d.spots||[]).forEach(x=>{if(x&&typeof x.lat==="number"&&typeof x.lon==="number"){x.id=String(x.id).replace(/[^\w-]/g,"");if(!sids.has(x.id))my.push(x)}});
+  ss("sdp-myspots",my);logMsg=tx().imported(added);loadAll()});
+}
+function formInput(e){const id=e.target.id,v=e.target.value;
+ if(id==="sName"&&pendingSpot){pendingSpot.name=v;return}
+ if(!logOpen||!logPre)return;
+ if(id==="fSpot")logPre.spot=v;
+ else if(id==="fWhen")logPre.t=new Date(v).getTime()||logPre.t;
+ else if(id==="fFish"){logPre.fish=+v;const c=$("fCount");if(logPre.fish===-1){logPre.count=0;c.value=0}else if(!(logPre.count>0)){logPre.count=1;c.value=1}}
+ else if(id==="fCount")logPre.count=Math.max(0,Math.min(99,+v||0));
+ else if(id==="fBait")logPre.bait=v;else if(id==="fNote")logPre.note=v;
+ else if(id==="impFile"&&e.type==="change"&&e.target.files[0])importData(e.target.files[0]);
+}
+document.addEventListener("input",formInput);document.addEventListener("change",formInput);
 
 // ================= events =================
 document.querySelector(".lang").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.lang=b.dataset.l;ss("sdp-lang",S.lang);
@@ -690,6 +928,23 @@ document.querySelector(".lang").addEventListener("click",e=>{const b=e.target.cl
  else if(!LOADED&&$("banner").innerHTML)$("banner").innerHTML=`<div class="banner err">${tx().err}</div>`;
  render()});
 document.addEventListener("click",e=>{
+ const q=sel=>e.target.closest(sel);
+ if(q("#gpsBtn")){nearest();return}
+ if(q("#addSpotBtn")){if(!LM){useLoc();return}addMode=!addMode;pendingSpot=null;mapMsg="";render();return}
+ if(q("#useLocBtn")){useLoc();return}
+ if(q("#layerBtn")){toggleLayer();return}
+ const ty=q("[data-ty]");if(ty&&pendingSpot){pendingSpot.type=ty.dataset.ty;renderMapTools();return}
+ if(q("#sSave")){saveSpot();return}
+ if(q("#sCancel")){pendingSpot=null;mapMsg="";render();return}
+ if(q("#delSpot")){deleteSpot();return}
+ if(q("#logOpen")){openLog(S.spot,Date.now());return}
+ if(q("#logHere")){openLog(S.spot,+TIMES[S.sel]);$("logPanel").scrollIntoView({behavior:"smooth",block:"start"});return}
+ if(q("#logCancel")){logOpen=false;logPre=null;renderLog();return}
+ if(q("#logSave")){saveTrip();return}
+ const dl=q("[data-del]");if(dl){ss("sdp-log",ls("sdp-log",[]).filter(x=>Number(x.id)!==Number(dl.dataset.del)));logMsg="";render();return}
+ if(q("#tuneBtn")){ss("sdp-tune",!(LEARN&&LEARN.on));render();return}
+ if(q("#expBtn")){exportData();return}
+ if(q("#impBtn")){$("impFile").click();return}
  const sp=e.target.closest("[data-s]");if(sp){S.spot=sp.dataset.s;ss("sdp-spot",S.spot);render();return}
  const h=e.target.closest("[data-i]");if(h){S.sel=+h.dataset.i;render();return}
  const c=e.target.closest("#clarChips [data-c]");if(c){S.clarO=c.dataset.c===""?null:+c.dataset.c;render();return}
