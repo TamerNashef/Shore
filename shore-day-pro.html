@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F6B78">
+<title>Shore Day – يوم الشاطئ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E7EFEE;--surface:#FAFDFC;--ink:#10303A;--muted:#557078;--line:#CFDEDB;--sea:#0F6B78;
+  --land:#E2D8BF;--water:#C3DFE3;--chip:#E1ECEA;--green:#23935A;--yellow:#D39A12;--red:#D3442F;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --bg:#0C1B20;--surface:#13272D;--ink:#E3EFEE;--muted:#9AB3B6;--line:#23404A;--sea:#53B3BF;
+  --land:#2C3B36;--water:#123A44;--chip:#1B343B;--green:#46B97A;--yellow:#E8B63E;--red:#EE6A55;}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --bg:#0C1B20;--surface:#13272D;--ink:#E3EFEE;--muted:#9AB3B6;--line:#23404A;--sea:#53B3BF;
+  --land:#2C3B36;--water:#123A44;--chip:#1B343B;--green:#46B97A;--yellow:#E8B63E;--red:#EE6A55;}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Rubik",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+:lang(ar) body,body:lang(ar){font-family:"IBM Plex Sans Arabic","Rubik",system-ui,Tahoma,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+main{max-width:640px;margin:0 auto;padding:12px 14px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 4px}
+h1{font-size:1.45rem;font-weight:800;margin:0;letter-spacing:-.01em}
+.tag{color:var(--muted);font-size:.9rem;margin:0 0 12px}
+.lang{display:flex;gap:4px;background:var(--chip);border-radius:999px;padding:3px}
+.lang button{font:inherit;font-size:.85rem;font-weight:600;border:0;background:none;color:var(--muted);padding:6px 10px;border-radius:999px;min-height:34px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+h2{font-size:1.08rem;font-weight:700;margin:0 0 10px}
+.sub{color:var(--muted);font-size:.86rem;margin:0 0 8px}
+.small{color:var(--muted);font-size:.82rem}
+.n{unicode-bidi:isolate;direction:ltr;display:inline-block}
+button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.banner{border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:.92rem;border:1px solid var(--line);background:var(--surface)}
+.banner.err{border-color:var(--red);background:color-mix(in srgb,var(--red) 10%,var(--surface))}
+.btn{font:inherit;font-weight:600;font-size:.9rem;border:1px solid var(--sea);color:var(--sea);background:transparent;border-radius:10px;padding:8px 12px;min-height:40px;cursor:pointer}
+.status{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;color:var(--muted);font-size:.84rem}
+
+/* map */
+.mapwrap{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:start}
+.map svg{width:150px;height:auto;display:block;border-radius:12px;background:var(--water)}
+.land{fill:var(--land)} .coast{fill:none;stroke:var(--muted);stroke-width:.8;opacity:.6}
+.mk{cursor:pointer} .mk text{font:700 8px Rubik,sans-serif;fill:#fff;pointer-events:none}
+.rank{list-style:none;margin:0;padding:0}
+.rank li{margin:0}
+.rank button{width:100%;display:grid;grid-template-columns:10px 1fr auto;align-items:center;gap:8px;font:inherit;text-align:start;background:none;border:0;border-bottom:1px solid var(--line);color:var(--ink);padding:7px 2px;min-height:40px;cursor:pointer}
+.rank button[aria-current="true"]{background:var(--chip);border-radius:8px}
+.rank .dot{width:10px;height:10px;border-radius:50%}
+.rank .nm{font-size:.9rem}
+.rank .pc{font-weight:700;font-size:.9rem}
+.best{display:inline-block;font-size:.7rem;font-weight:700;color:#fff;background:var(--green);border-radius:6px;padding:1px 6px;margin-inline-start:6px;vertical-align:middle}
+.alert{margin-top:10px;border-inline-start:4px solid var(--yellow);background:var(--chip);border-radius:8px;padding:8px 10px;font-size:.88rem}
+.alert.red{border-color:var(--red)}
+
+/* score */
+.scoreTop{display:flex;align-items:center;gap:16px}
+.ring{flex:none;width:118px;height:118px}
+.ring .pct{font:800 30px Rubik,sans-serif;fill:var(--ink)}
+.ring .lbl{font:600 12px Rubik,sans-serif;fill:var(--muted)}
+.where{font-weight:700;font-size:1.05rem}
+.when{color:var(--muted);font-size:.9rem}
+.verdict{font-size:1.5rem;font-weight:800;line-height:1.15;margin-top:4px}
+.bestwin{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--chip);font-size:.92rem}
+.why h3{font-size:.95rem;margin:14px 0 6px}
+.why ul{margin:0;padding:0;list-style:none}
+.why li{padding:6px 0;border-top:1px solid var(--line);font-size:.9rem}
+.why li b{font-weight:600}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:12px}
+.fg{font-size:.8rem;color:var(--muted)}
+.fg .mb{height:6px;border-radius:3px;background:var(--chip);overflow:hidden;margin-top:2px}
+.fg .mb i{display:block;height:100%}
+.warn{margin-top:10px;border:1px solid var(--red);background:color-mix(in srgb,var(--red) 12%,var(--surface));border-radius:10px;padding:8px 10px;font-size:.9rem}
+
+/* charts */
+.ch{width:100%;height:auto;display:block;direction:ltr}
+.ch .grid{stroke:var(--line);stroke-width:1}
+.ch .hl{font:9px Rubik,sans-serif;fill:var(--muted)}
+.ch .dl{font:600 9px Rubik,sans-serif;fill:var(--ink)}
+.ch .selb{fill:var(--sea);opacity:.16}
+.ch .nowl{stroke:var(--ink);stroke-width:1;stroke-dasharray:3 3}
+.ch .hit{fill:transparent;cursor:pointer}
+.ch .ex{font:700 9px Rubik,sans-serif;fill:var(--ink)}
+.big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.big strong{font-size:1.7rem;font-weight:800;line-height:1}
+.pill{display:inline-block;font-size:.8rem;font-weight:700;color:#fff;border-radius:999px;padding:3px 10px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:6px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px;vertical-align:-1px;background:var(--c)}
+.selinfo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:.88rem}
+.arrowrow{margin-top:4px}
+.dirnow{display:flex;align-items:center;gap:12px;margin:6px 0}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kv{background:var(--chip);border-radius:10px;padding:8px 10px}
+.kv span{display:block;font-size:.78rem;color:var(--muted)}
+.kv b{font-size:1.02rem}
+.moonTop{display:flex;align-items:center;gap:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:6px 12px;min-height:38px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--sea);border-color:var(--sea);color:#fff}
+.gauge{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:8px 0 4px}
+.gauge div{height:12px;border-radius:4px;opacity:.35}
+.gauge div.on{opacity:1;outline:2px solid var(--ink);outline-offset:1px}
+.gl{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:.74rem;color:var(--muted);text-align:center}
+.fish{border-top:1px solid var(--line);padding:10px 0}
+.fish:first-child{border-top:0;padding-top:0}
+.fish .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.fish b{font-size:.98rem}
+.fish i{color:var(--muted);font-size:.8rem}
+.fish .bait{font-size:.88rem;margin-top:2px}
+.fish .note{font-size:.82rem;color:var(--red)}
+.sci p{font-size:.9rem}
+[hidden]{display:none!important}
+@media (max-width:380px){.mapwrap{grid-template-columns:120px 1fr}.map svg{width:120px}.ring{width:100px;height:100px}}
+@media (prefers-reduced-motion:no-preference){.pulse{animation:pl 1.8s ease-out infinite;transform-origin:center;transform-box:fill-box}@keyframes pl{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(2.2)}}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 id="title"></h1>
+    <div class="lang" role="group" aria-label="Language">
+      <button data-l="ar">عربي</button><button data-l="he">עברית</button><button data-l="en">EN</button>
+    </div>
+  </header>
+  <p class="tag" id="tag"></p>
+  <div id="banner"></div>
+  <div class="status"><span id="upd"></span><button class="btn" id="refresh"></button></div>
+
+  <div id="app" hidden>
+    <section class="panel">
+      <h2 id="tMap"></h2>
+      <div class="mapwrap"><div class="map" id="map"></div><ol class="rank" id="rank"></ol></div>
+      <div id="alerts"></div>
+    </section>
+
+    <section class="panel" id="scorePanel"></section>
+
+    <section class="panel">
+      <h2 id="tTimeline"></h2>
+      <div class="selinfo"><span id="selLbl"></span><button class="btn" id="backNow"></button></div>
+      <div id="timeline" data-chart></div>
+      <div class="legend" id="scoreLegend"></div>
+    </section>
+
+    <section class="panel" id="moonPanel"></section>
+    <section class="panel" id="tidePanel"></section>
+    <section class="panel" id="windPanel"></section>
+    <section class="panel" id="presPanel"></section>
+    <section class="panel" id="wavePanel"></section>
+    <section class="panel" id="clarPanel"></section>
+    <section class="panel" id="fishPanel"></section>
+  </div>
+  <section class="panel" id="moonOffline" hidden></section>
+  <section class="panel sci" id="sciPanel"></section>
+</main>
+
+<script>
+"use strict";
+// ================= i18n =================
+const LOC={en:"en-GB",he:"he-IL",ar:"ar-u-nu-latn"};
+const T={
+en:{title:"Shore Day",tag:"Shore fishing chance for Israel’s Mediterranean coast – live, hour by hour.",loading:"Loading live sea data…",
+ err:"Live data couldn’t load. Open this file in a normal browser (Chrome or Safari) with internet, or put it on a website. Moon and sun still work below.",
+ cached:"No connection – showing saved data from",upd:"Updated",refresh:"Refresh",map:"Which beach is best?",bestNow:"Best",
+ chance:"Fishing chance",lv:["Poor","Fair","Good","Excellent"],danger:"Dangerous – stay home",up:"Why the chance is higher",down:"Why the chance is lower",
+ bestWin:"Best time in the next 48 h",timeline:"Chance hour by hour – tap a bar to see that time",now:"Now",backNow:"Back to now",showing:"Showing",
+ factors:"All factors",diff:(a,b,f)=>`Big difference between beaches: ${a} is better than ${b} right now, mainly because of ${f}.`,
+ unsafeAt:n=>`${n}: dangerous conditions – stay off the rocks.`,
+ moon:"Moon",lit:"Lit",rise:"Moonrise",set:"Moonset",over:"Overhead (major)",under:"Underfoot (major)",full:"Full moon in",newm:"New moon in",days:"days",
+ phases:["New moon","Waxing crescent","First quarter","Waxing gibbous","Full moon","Waning gibbous","Last quarter","Waning crescent"],
+ moonNext:"Moon periods in the next 48 h",sun:"Sunrise / sunset",
+ tide:"Tide",rising:"Rising",falling:"Falling",high:"High",low:"Low",nextHigh:"Next high",nextLow:"Next low",
+ tideNote:"Israel’s tides are small – only a few tens of cm – so they count for little in the chance.",tideNA:"Tide data isn’t available for this beach right now.",
+ wind:"Wind speed",windT:"Wind speed & direction",gust:"Gusts",windL:["Calm","Medium","Strong"],dirT:"Wind direction",from:"From",next24:"Next 24 h",maxW:"max",mostly:"mostly from",
+ onshore:"Blowing from the sea onto this beach",offshore:"Blowing from land – flattens the sea here",cross:"Blowing along the shore",
+ dirs:["North","Northeast","East","Southeast","South","Southwest","West","Northwest"],
+ pres:"Air pressure",presL:["Low","Moderate","High"],trend:{fallslow:"Falling slowly",steady:"Steady",riseslow:"Rising slowly",risefast:"Rising fast",fallfast:"Falling fast"},
+ waves:"Waves",waveL:["Low","Moderate","High"],period:"Period",sst:"Sea temperature",
+ clar:"Water clarity",clarL:["Clear","Slightly murky","Murky","Muddy"],clarEst:"Estimated from waves and rain in the last 2 days. Tap what you actually see:",auto:"Auto",
+ fish:"Fish to expect & best bait",bait:"Bait",match:"Match",
+ sciT:"How the chance is calculated",
+ sci:["No study can promise a catch. Research does show which conditions are linked to better catches – and that the angler’s own choices (bait, spot, experience) matter most. This index adds up those conditions: when most are good, your odds go up.",
+ "Israel: A national survey of recreational fishing along Israel’s coast (Frid et al., 2023) found shore anglers mainly catch rabbitfish, white seabream, northern whiting, grey mullet and sand steenbras, and that species that came from the Red Sea are now among the most common.",
+ "Waves (22 points): Inshore sea bass catches fell as wave height rose (Watson et al., 2022). A South African surf-zone study found fish move into breaking waves for cover when the water is a bit murky – so light white water scores best.",
+ "Light (15): In lake studies, time of day mattered more than the moon. Dawn, dusk and cloudy hours score highest.",
+ "Wind (13 + 10) and pressure (12): Wind speed and direction affected catches in a long-term creel study. For pressure the trend matters more than the number, but proof in the sea is weak – so it has a medium weight.",
+ "Moon (10): Real but small – about 5% more fish around full and new moon in a study of 340,000+ catches (Vinson & Angradi, 2014). Moon overhead/underfoot periods helped in a long-term lake study (2021).",
+ "Water clarity (10), tide (5), sea temperature (3): Slightly murky water is best near shore. Israel’s tide is only a few tens of cm, so it counts for little.",
+ "Live data: Open-Meteo weather and marine forecasts. Moon and sun are calculated in the app.",
+ "Fishing is not allowed in marine nature reserves or during some breeding seasons. Respect minimum sizes and local signs."],
+ fn:{waves:"waves",wind:"wind speed",dir:"wind direction",pres:"pressure",light:"light & time",moon:"moon",clar:"water clarity",tide:"tide",sst:"sea temperature"},
+ fN:{waves:"Waves",wind:"Wind speed",dir:"Wind direction",pres:"Pressure",light:"Light & time",moon:"Moon",clar:"Water clarity",tide:"Tide",sst:"Sea temp."}
+},
+he:{title:"יום חוף",tag:"סיכוי לדיג מהחוף בחופי הים התיכון בישראל – בזמן אמת, שעה אחר שעה.",loading:"טוען נתוני ים חיים…",
+ err:"לא ניתן לטעון נתונים חיים. פתחו את הקובץ בדפדפן רגיל (Chrome או Safari) עם אינטרנט, או העלו אותו לאתר. הירח והשמש עדיין עובדים למטה.",
+ cached:"אין חיבור – מוצגים נתונים שמורים מ־",upd:"עודכן",refresh:"רענון",map:"איזה חוף הכי טוב?",bestNow:"הכי טוב",
+ chance:"סיכוי לדיג",lv:["חלש","בינוני","טוב","מצוין"],danger:"מסוכן – הישארו בבית",up:"למה הסיכוי גבוה יותר",down:"למה הסיכוי נמוך יותר",
+ bestWin:"הזמן הכי טוב ב־48 השעות הקרובות",timeline:"סיכוי לפי שעה – הקישו על עמודה לראות את השעה",now:"עכשיו",backNow:"חזרה לעכשיו",showing:"מוצג",
+ factors:"כל הגורמים",diff:(a,b,f)=>`הבדל גדול בין החופים: ${a} טוב יותר מ־${b} כרגע, בעיקר בגלל ${f}.`,
+ unsafeAt:n=>`${n}: תנאים מסוכנים – לא לעלות על הסלעים.`,
+ moon:"ירח",lit:"מואר",rise:"זריחת ירח",set:"שקיעת ירח",over:"ירח מעל (עיקרית)",under:"ירח מתחת (עיקרית)",full:"ירח מלא בעוד",newm:"ירח חדש בעוד",days:"ימים",
+ phases:["ירח חדש","סהר מתמלא","רבע ראשון","ירח מתמלא","ירח מלא","ירח מתמעט","רבע אחרון","סהר מתמעט"],
+ moonNext:"תקופות ירח ב־48 השעות הקרובות",sun:"זריחה / שקיעה",
+ tide:"גאות ושפל",rising:"עולה",falling:"יורד",high:"גאות",low:"שפל",nextHigh:"הגאות הבאה",nextLow:"השפל הבא",
+ tideNote:"הגאות בישראל קטנה – עשרות ס״מ בלבד – ולכן משפיעה מעט על הסיכוי.",tideNA:"אין כרגע נתוני גאות לחוף הזה.",
+ wind:"מהירות רוח",windT:"מהירות וכיוון הרוח",gust:"משבים",windL:["רגועה","בינונית","חזקה"],dirT:"כיוון הרוח",from:"מ",next24:"24 השעות הקרובות",maxW:"מקסימום",mostly:"בעיקר מ",
+ onshore:"נושבת מהים אל החוף הזה",offshore:"נושבת מהיבשה – מרגיעה את הים כאן",cross:"נושבת לאורך החוף",
+ dirs:["צפון","צפון-מזרח","מזרח","דרום-מזרח","דרום","דרום-מערב","מערב","צפון-מערב"],
+ pres:"לחץ אוויר",presL:["נמוך","מתון","גבוה"],trend:{fallslow:"יורד לאט",steady:"יציב",riseslow:"עולה לאט",risefast:"עולה מהר",fallfast:"יורד מהר"},
+ waves:"גלים",waveL:["נמוכים","בינוניים","גבוהים"],period:"מחזור",sst:"טמפרטורת ים",
+ clar:"צלילות המים",clarL:["צלול","עכור מעט","עכור","בוצי"],clarEst:"הערכה לפי גלים וגשם ביומיים האחרונים. הקישו מה שאתם רואים בפועל:",auto:"אוטומטי",
+ fish:"דגים צפויים ופיתיון מומלץ",bait:"פיתיון",match:"התאמה",
+ sciT:"איך מחושב הסיכוי",
+ sci:["שום מחקר לא יכול להבטיח שלל. המחקרים כן מראים אילו תנאים קשורים לשלל טוב יותר – ושההחלטות של הדייג עצמו (פיתיון, מקום, ניסיון) משפיעות הכי הרבה. המדד מחבר את התנאים האלה: כשרובם טובים, הסיכוי עולה.",
+ "ישראל: סקר ארצי של דיג הנופש בחופי ישראל (Frid ועמיתים, 2023) מצא שדייגי החוף תופסים בעיקר סיכן, סרגוס, סילגו, בורי ומורמור, ושמינים שהגיעו מים סוף הם היום מהנפוצים ביותר.",
+ "גלים (22 נקודות): השלל של לברק ליד החוף ירד ככל שהגלים גבהו (Watson ועמיתים, 2022). מחקר באזור הגלים בדרום אפריקה מצא שדגים נכנסים לגלים השוברים כדי להסתתר כשהמים מעט עכורים – לכן קצת קצף לבן מקבל הכי הרבה.",
+ "אור (15): במחקרים באגמים, שעת היום השפיעה יותר מהירח. שחר, שקיעה ושעות מעוננות מקבלים הכי הרבה.",
+ "רוח (13 + 10) ולחץ (12): מהירות וכיוון הרוח השפיעו על השלל במחקר ארוך טווח. בלחץ, המגמה חשובה יותר מהמספר, אבל ההוכחות בים חלשות – ולכן משקל בינוני.",
+ "ירח (10): השפעה אמיתית אבל קטנה – כ־5% יותר דגים סביב ירח מלא וחדש במחקר על יותר מ־340,000 דגים (Vinson ו־Angradi, 2014). תקופות שבהן הירח מעל או מתחת עזרו במחקר ארוך טווח (2021).",
+ "צלילות (10), גאות (5), טמפרטורת ים (3): מים מעט עכורים הכי טובים ליד החוף. הגאות בישראל היא עשרות ס״מ בלבד, לכן משקלה קטן.",
+ "נתונים חיים: תחזיות מזג אוויר וים של Open-Meteo. הירח והשמש מחושבים באפליקציה.",
+ "אסור לדוג בשמורות טבע ימיות ובחלק מעונות הרבייה. הקפידו על גדלים מינימליים ועל השילוט."],
+ fn:{waves:"הגלים",wind:"מהירות הרוח",dir:"כיוון הרוח",pres:"הלחץ",light:"האור והשעה",moon:"הירח",clar:"צלילות המים",tide:"הגאות",sst:"טמפרטורת הים"},
+ fN:{waves:"גלים",wind:"מהירות רוח",dir:"כיוון רוח",pres:"לחץ",light:"אור ושעה",moon:"ירח",clar:"צלילות",tide:"גאות",sst:"טמפ׳ ים"}
+},
+ar:{title:"يوم الشاطئ",tag:"فرصة الصيد من الشاطئ على ساحل البحر المتوسط في إسرائيل – مباشرة، ساعة بساعة.",loading:"جارٍ تحميل بيانات البحر الحيّة…",
+ err:"تعذّر تحميل البيانات الحيّة. افتح هذا الملف في متصفح عادي (Chrome أو Safari) مع إنترنت، أو ارفعه على موقع. القمر والشمس يعملان في الأسفل.",
+ cached:"لا يوجد اتصال – عرض بيانات محفوظة من",upd:"آخر تحديث",refresh:"تحديث",map:"أي شاطئ أفضل؟",bestNow:"الأفضل",
+ chance:"فرصة الصيد",lv:["ضعيفة","متوسطة","جيدة","ممتازة"],danger:"خطر – ابقَ في البيت",up:"لماذا الفرصة أعلى",down:"لماذا الفرصة أقل",
+ bestWin:"أفضل وقت خلال الـ48 ساعة القادمة",timeline:"الفرصة ساعة بساعة – اضغط على عمود لرؤية ذلك الوقت",now:"الآن",backNow:"العودة للآن",showing:"المعروض",
+ factors:"كل العوامل",diff:(a,b,f)=>`فرق كبير بين الشواطئ: ${a} أفضل من ${b} الآن، والسبب الأساسي ${f}.`,
+ unsafeAt:n=>`${n}: ظروف خطرة – ابتعد عن الصخور.`,
+ moon:"القمر",lit:"مُضاء",rise:"شروق القمر",set:"غروب القمر",over:"القمر فوقنا (رئيسية)",under:"القمر تحتنا (رئيسية)",full:"البدر بعد",newm:"المحاق بعد",days:"أيام",
+ phases:["محاق","هلال متزايد","تربيع أول","أحدب متزايد","بدر","أحدب متناقص","تربيع ثانٍ","هلال متناقص"],
+ moonNext:"فترات القمر خلال الـ48 ساعة القادمة",sun:"شروق / غروب الشمس",
+ tide:"المدّ والجزر",rising:"يرتفع (مدّ)",falling:"ينخفض (جزر)",high:"مدّ",low:"جزر",nextHigh:"أعلى مدّ قادم",nextLow:"أدنى جزر قادم",
+ tideNote:"المدّ في إسرائيل صغير – بضع عشرات من السنتيمترات فقط – لذا تأثيره قليل على الفرصة.",tideNA:"لا توجد بيانات مدّ لهذا الشاطئ حاليًا.",
+ wind:"سرعة الرياح",windT:"سرعة الرياح واتجاهها",gust:"هبّات",windL:["هادئة","متوسطة","قوية"],dirT:"اتجاه الرياح",from:"من",next24:"الـ24 ساعة القادمة",maxW:"الأقصى",mostly:"غالبًا من",
+ onshore:"تهبّ من البحر نحو هذا الشاطئ",offshore:"تهبّ من البر – تهدّئ البحر هنا",cross:"تهبّ بموازاة الشاطئ",
+ dirs:["الشمال","الشمال الشرقي","الشرق","الجنوب الشرقي","الجنوب","الجنوب الغربي","الغرب","الشمال الغربي"],
+ pres:"الضغط الجوي",presL:["منخفض","معتدل","مرتفع"],trend:{fallslow:"ينخفض ببطء",steady:"مستقر",riseslow:"يرتفع ببطء",risefast:"يرتفع بسرعة",fallfast:"ينخفض بسرعة"},
+ waves:"الأمواج",waveL:["منخفضة","معتدلة","مرتفعة"],period:"الدورة",sst:"حرارة البحر",
+ clar:"صفاء المياه",clarL:["صافية","عكارة خفيفة","عكرة","موحلة"],clarEst:"تقدير حسب الموج والمطر خلال آخر يومين. اختر ما تراه فعلًا:",auto:"تلقائي",
+ fish:"الأسماك المتوقعة والطُّعم الأفضل",bait:"الطُّعم",match:"التوافق",
+ sciT:"كيف تُحسب الفرصة",
+ sci:["لا يوجد بحث يضمن الصيد. لكن الأبحاث تُظهر ما هي الظروف المرتبطة بصيد أفضل – وأن قرارات الصيّاد نفسه (الطُّعم، المكان، الخبرة) هي الأهم. هذا المؤشّر يجمع هذه الظروف: كلما كان أغلبها جيدًا، ارتفعت فرصتك.",
+ "إسرائيل: مسح وطني للصيد الترفيهي على الساحل الإسرائيلي (Frid وزملاؤه، 2023) وجد أن صيادي الشاطئ يصطادون غالبًا السيجان والسرغوس والسيلاجو والبوري والمرمور، وأن أنواعًا قادمة من البحر الأحمر أصبحت من الأكثر شيوعًا.",
+ "الأمواج (22 نقطة): صيد القاروص قرب الشاطئ قلّ كلما ارتفع الموج (Watson وزملاؤه، 2022). ودراسة في منطقة الموج بجنوب أفريقيا وجدت أن السمك يدخل الموج المتكسّر ليختبئ عندما تكون المياه عكرة قليلًا – لذلك الزبد الأبيض الخفيف يحصل على أعلى نقاط.",
+ "الضوء (15): في دراسات البحيرات كان لوقت اليوم تأثير أكبر من القمر. الفجر والغروب والساعات الغائمة تحصل على أعلى نقاط.",
+ "الرياح (13 + 10) والضغط (12): سرعة الرياح واتجاهها أثّرا على الصيد في دراسة طويلة الأمد. أما الضغط فاتجاه تغيّره أهم من رقمه، لكن الأدلة في البحر ضعيفة – لذا وزنه متوسط.",
+ "القمر (10): تأثير حقيقي لكنه صغير – نحو 5% سمك أكثر حول البدر والمحاق في دراسة شملت أكثر من 340 ألف سمكة (Vinson وAngradi، 2014). وفترات وجود القمر فوقنا أو تحتنا ساعدت في دراسة طويلة الأمد (2021).",
+ "صفاء المياه (10)، المدّ والجزر (5)، حرارة البحر (3): المياه العكرة قليلًا هي الأفضل قرب الشاطئ. المدّ في إسرائيل بضع عشرات من السنتيمترات فقط، لذا وزنه قليل.",
+ "البيانات الحيّة: توقعات الطقس والبحر من Open-Meteo. القمر والشمس يُحسبان داخل التطبيق.",
+ "يُمنع الصيد في المحميات البحرية وفي بعض مواسم التكاثر. احترم الأحجام الدنيا واللافتات المحلية."],
+ fn:{waves:"الأمواج",wind:"سرعة الرياح",dir:"اتجاه الرياح",pres:"الضغط الجوي",light:"الضوء والوقت",moon:"القمر",clar:"صفاء المياه",tide:"المدّ والجزر",sst:"حرارة البحر"},
+ fN:{waves:"الأمواج",wind:"سرعة الرياح",dir:"اتجاه الرياح",pres:"الضغط",light:"الضوء والوقت",moon:"القمر",clar:"صفاء المياه",tide:"المدّ",sst:"حرارة البحر"}
+}};
+// factor explanations [en, he, ar]
+const FX={
+waves:{flat:["Flat sea – fish are cautious in still, clear water; best at night or first light.","ים שטוח – הדגים זהירים במים שקטים וצלולים; עדיף בלילה או עם שחר.","بحر ساكن – السمك حذر في المياه الهادئة الصافية؛ الأفضل ليلًا أو مع الفجر."],
+ small:["Small waves – easy, comfortable fishing.","גלים קטנים – דיג נוח וקל.","موج خفيف – صيد مريح وسهل."],
+ ideal:["Ideal: light white water stirs up food and gives fish cover.","אידיאלי: קצף לבן קל מעלה מזון ונותן לדגים מחסה.","مثالي: الزبد الأبيض الخفيف يحرّك الطعام ويمنح السمك غطاءً."],
+ rough:["Getting rough – studies show catches drop as waves grow.","מתחיל להיות סוער – מחקרים מראים ירידה בשלל כשהגלים גדלים.","البحر يشتدّ – الأبحاث تُظهر أن الصيد يقلّ مع ارتفاع الموج."],
+ high:["High waves – hard to hold bottom, risky on rocks.","גלים גבוהים – קשה להחזיק קרקעית, מסוכן על סלעים.","موج عالٍ – صعب تثبيت الطُّعم، وخطر على الصخور."],
+ danger:["Dangerous swell – stay off breakwaters.","גלים מסוכנים – לא לעלות על שוברי גלים.","موج خطير – ابتعد عن كاسرات الأمواج."],
+ na:["No wave data.","אין נתוני גלים.","لا توجد بيانات موج."]},
+wind:{calm:["Light wind – easy casting and clear bites.","רוח חלשה – הטלה קלה ונגיסות ברורות.","رياح خفيفة – رمي سهل وإحساس واضح بالنتش."],
+ moderate:["Moderate wind – still fine.","רוח בינונית – עדיין בסדר.","رياح معتدلة – لا تزال مناسبة."],
+ fresh:["Windy – casting and feeling bites get harder.","רוחני – ההטלה וזיהוי הנגיסות קשים יותר.","رياح نشطة – الرمي والإحساس بالنتش أصعب."],
+ strong:["Strong wind – tough conditions.","רוח חזקה – תנאים קשים.","رياح قوية – ظروف صعبة."],
+ danger:["Very strong wind – dangerous on exposed spots.","רוח חזקה מאוד – מסוכן במקומות חשופים.","رياح قوية جدًا – خطر في الأماكن المكشوفة."]},
+dir:{light:["Wind too light for direction to matter.","הרוח חלשה מכדי שהכיוון ישפיע.","الرياح ضعيفة فلا يؤثر اتجاهها."],
+ offshore:["Wind from land – flattens the sea at this beach.","רוח מהיבשה – מרגיעה את הים בחוף הזה.","رياح من البر – تهدّئ البحر عند هذا الشاطئ."],
+ onshore:["Wind from the sea – pushes waves and weed onto this beach.","רוח מהים – דוחפת גלים ואצות לחוף הזה.","رياح من البحر – تدفع الموج والأعشاب نحو هذا الشاطئ."],
+ cross:["Wind along the shore – workable, expect line drift.","רוח לאורך החוף – אפשרי, צפו לסחיפת חוט.","رياح موازية للشاطئ – مقبولة، توقّع انجراف الخيط."]},
+pres:{fallslow:["Pressure falling slowly – the classic pre-front feeding window.","הלחץ יורד לאט – חלון ההאכלה הקלאסי לפני חזית.","الضغط ينخفض ببطء – نافذة التغذية المعروفة قبل المنخفض."],
+ steady:["Stable pressure – normal activity.","לחץ יציב – פעילות רגילה.","ضغط مستقر – نشاط طبيعي."],
+ riseslow:["Pressure rising after a front – fish often slow down.","הלחץ עולה אחרי חזית – הדגים לרוב מאטים.","الضغط يرتفع بعد المنخفض – السمك غالبًا يخمل."],
+ risefast:["Sharp pressure rise – usually the slowest bite.","עלייה חדה בלחץ – בדרך כלל הנגיסות הכי חלשות.","ارتفاع حاد في الضغط – غالبًا أضعف نشاط للسمك."],
+ fallfast:["Pressure dropping fast – a storm is coming.","הלחץ צונח מהר – סערה מתקרבת.","الضغط ينخفض بسرعة – عاصفة قادمة."]},
+light:{golden:["Dawn/dusk window – the most reliable time to fish.","חלון שחר/שקיעה – הזמן הכי אמין לדיג.","نافذة الفجر/الغروب – أكثر الأوقات موثوقية للصيد."],
+ night:["Night – good for seabream and sea bass in calm water.","לילה – טוב לסרגוס ולברק במים רגועים.","ليل – جيد للسرغوس والقاروص في المياه الهادئة."],
+ overcast:["Cloudy daytime – lower light helps.","יום מעונן – פחות אור עוזר.","نهار غائم – قلة الضوء تساعد."],
+ day:["Bright daytime – fish stay deeper and warier.","יום בהיר – הדגים עמוק יותר וזהירים.","نهار مشمس – السمك يبقى أعمق وأكثر حذرًا."]},
+moon:{major:["Moon overhead/underfoot (major period) – linked to more bites in studies.","הירח מעל/מתחת (תקופה עיקרית) – קשור ליותר נגיסות במחקרים.","القمر فوقنا/تحتنا (فترة رئيسية) – مرتبط بنشاط أكبر في الأبحاث."],
+ minor:["Moonrise/moonset (minor period) – a small boost.","זריחת/שקיעת ירח (תקופה משנית) – תוספת קטנה.","شروق/غروب القمر (فترة ثانوية) – دفعة صغيرة."],
+ none:["Between moon periods – little effect.","בין תקופות הירח – השפעה קטנה.","بين فترات القمر – تأثير قليل."],
+ peak:[" Near full or new moon – slightly better (about 5% in big studies)."," קרוב לירח מלא או חדש – מעט טוב יותר (כ־5% במחקרים גדולים)."," قريب من البدر أو المحاق – أفضل قليلًا (نحو 5% في الدراسات الكبيرة)."]},
+clar:{clear:["Clear water – fish are shy; use light line and low light.","מים צלולים – הדגים ביישנים; חוט דק ושעות חשוכות.","مياه صافية – السمك خجول؛ استخدم خيطًا رفيعًا ووقتًا قليل الضوء."],
+ slight:["Slightly murky – fish feel safe close to shore. Best.","עכור מעט – הדגים מרגישים בטוחים ליד החוף. הכי טוב.","عكارة خفيفة – السمك يشعر بالأمان قرب الشاطئ. الأفضل."],
+ murky:["Murky – use smelly baits (sardine, crab).","עכור – השתמשו בפיתיון עם ריח (סרדין, סרטן).","عكر – استخدم طُعمًا قوي الرائحة (سردين، سلطعون)."],
+ muddy:["Muddy after storm or rain – fish move away from shore.","בוצי אחרי סערה או גשם – הדגים מתרחקים מהחוף.","موحل بعد عاصفة أو مطر – السمك يبتعد عن الشاطئ."]},
+tide:{moving:["Water is moving – a little current helps.","המים בתנועה – קצת זרם עוזר.","الماء يتحرك – القليل من التيار يساعد."],
+ slack:["Slack water – small effect on the Med.","מים עומדים – השפעה קטנה בים התיכון.","مياه راكدة – تأثير بسيط في المتوسط."],
+ na:["No tide data.","אין נתוני גאות.","لا توجد بيانات مدّ."]},
+sst:{ok:["Sea temperature in the comfortable range.","טמפרטורת המים בטווח הנוח.","حرارة البحر ضمن المجال المريح."],
+ off:["Sea temperature outside the usual range.","טמפרטורת המים מחוץ לטווח הרגיל.","حرارة البحر خارج المجال المعتاد."],
+ na:["No sea temperature data.","אין נתוני טמפרטורת ים.","لا توجد بيانات حرارة البحر."]}};
+const LI={en:0,he:1,ar:2};
+
+// ================= spots & species =================
+// sea = bearing from shore toward open sea; slat/slon = point offshore for marine data
+const SPOTS=[
+ {id:"nah",n:["Nahariya","נהריה","نهاريا"],lat:33.008,lon:35.088,slat:33.008,slon:35.04,sea:270,turb:.1,hab:["rock"]},
+ {id:"akk",n:["Akko","עכו","عكا"],lat:32.920,lon:35.066,slat:32.912,slon:35.02,sea:250,turb:.15,hab:["rock","harbor"]},
+ {id:"hai",n:["Haifa – Bat Galim","חיפה – בת גלים","حيفا – بات جاليم"],lat:32.836,lon:34.978,slat:32.862,slon:34.95,sea:330,turb:.2,hab:["rock","harbor"]},
+ {id:"cae",n:["Caesarea","קיסריה","قيسارية"],lat:32.505,lon:34.888,slat:32.505,slon:34.84,sea:280,turb:.2,hab:["rock","sand"]},
+ {id:"mic",n:["Michmoret","מכמורת","مخمورت"],lat:32.408,lon:34.866,slat:32.41,slon:34.82,sea:280,turb:.25,hab:["sand","rock"]},
+ {id:"net",n:["Netanya","נתניה","نتانيا"],lat:32.330,lon:34.850,slat:32.33,slon:34.80,sea:285,turb:.25,hab:["sand"]},
+ {id:"her",n:["Herzliya marina","מרינה הרצליה","مرسى هرتسليا"],lat:32.163,lon:34.795,slat:32.165,slon:34.75,sea:285,turb:.25,hab:["harbor","rock"]},
+ {id:"tlv",n:["Tel Aviv port","נמל תל אביב","ميناء تل أبيب"],lat:32.097,lon:34.772,slat:32.098,slon:34.725,sea:285,turb:.3,hab:["harbor","rock"]},
+ {id:"jaf",n:["Jaffa port","נמל יפו","ميناء يافا"],lat:32.053,lon:34.749,slat:32.053,slon:34.70,sea:275,turb:.3,hab:["harbor","rock"]},
+ {id:"ash",n:["Ashdod","אשדוד","أسدود"],lat:31.795,lon:34.628,slat:31.80,slon:34.58,sea:295,turb:.4,hab:["sand"]},
+ {id:"ask",n:["Ashkelon marina","מרינה אשקלון","مرسى عسقلان"],lat:31.680,lon:34.553,slat:31.685,slon:34.50,sea:295,turb:.4,hab:["harbor","sand"]}];
+const FISH=[
+ {sci:"Siganus rivulatus",n:["Marbled spinefoot (rabbitfish)","סיכן","سيجان"],b:["Bread dough, green sea lettuce (algae)","בצק לחם, אצה ירוקה (חסת ים)","عجينة خبز، طحلب أخضر (خس البحر)"],
+  note:["Venomous spines – hold it with a cloth.","קוצים ארסיים – החזיקו עם מטלית.","أشواك سامة – أمسكه بقطعة قماش."],m:[5,6,7,8,9,10,11],all:1,sst:[19,30],wave:"calm",water:"any",light:["day","overcast","golden"],hab:["rock","harbor"]},
+ {sci:"Diplodus sargus",n:["White seabream","סרגוס","سرغوس"],b:["Shrimp, mussels, sea worms, small crab","שרימפס, מולים, תולעי ים, סרטן קטן","قريدس (جمبري)، بلح البحر، ديدان البحر، سلطعون صغير"],m:[10,11,12,1,2,3,4],all:1,sst:[15,26],wave:"rough",water:"murky",light:["golden","night","overcast"],hab:["rock","harbor"]},
+ {sci:"Sillago sihama",n:["Northern whiting","סילגו","سيلاجو"],b:["Small sea worms, pieces of shrimp","תולעי ים קטנות, חתיכות שרימפס","ديدان بحر صغيرة، قطع قريدس"],m:[5,6,7,8,9,10],sst:[21,30],wave:"calm",water:"clear",light:["day","golden"],hab:["sand"]},
+ {sci:"Mugil cephalus",n:["Flathead grey mullet","בורי","بوري"],b:["Bread paste under a float, small hooks","בצק לחם עם מצוף, קרסים קטנים","عجينة خبز مع عوّامة، صنانير صغيرة"],m:[9,10,11,12,1,2,3],all:1,sst:[14,30],wave:"calm",water:"any",light:["day","golden","overcast"],hab:["harbor","sand"]},
+ {sci:"Lithognathus mormyrus",n:["Sand steenbras","מורמור","مرمور"],b:["Sea worms, small clams, small shrimp","תולעי ים, צדפות קטנות, שרימפס קטן","ديدان البحر، محار صغير، قريدس صغير"],m:[4,5,6,7,8,9,10,11],sst:[17,29],wave:"rough",water:"murky",light:["golden","overcast","day"],hab:["sand"]},
+ {sci:"Sparus aurata",n:["Gilthead seabream","דניס","دنيس"],b:["Crab, mussels, shrimp, sea worms","סרטן, מולים, שרימפס, תולעי ים","سلطعون، بلح البحر، قريدس، ديدان البحر"],m:[10,11,12,1,2,3,4],sst:[14,25],wave:"any",water:"murky",light:["golden","night"],hab:["rock","sand","harbor"]},
+ {sci:"Dicentrarchus labrax",n:["European sea bass","לברק","قاروص (لبراك)"],b:["Live small fish, sardine, shrimp, soft lures","דג חי קטן, סרדין, שרימפס, פיתיונות סיליקון","سمكة صغيرة حيّة، سردين، قريدس، طُعوم سيليكون"],m:[11,12,1,2,3],sst:[13,22],wave:"rough",water:"murky",light:["night","golden"],hab:["rock","harbor"]},
+ {sci:"Pomatomus saltatrix",n:["Bluefish","גומבר","لوفر (بلوفيش)"],b:["Sardine strips, metal spoons, poppers","רצועות סרדין, כפיות מתכת, פופרים","شرائح سردين، ملاعق معدنية، بوبر"],
+  note:["Sharp teeth – use a wire leader.","שיניים חדות – השתמשו במוביל פלדה.","أسنان حادة – استخدم سلكًا فولاذيًا."],m:[3,4,5,9,10,11,12],sst:[16,27],wave:"any",water:"any",light:["golden","overcast"],hab:["sand","harbor","rock"]},
+ {sci:"Lichia amia",n:["Leerfish","ליצ׳ה","ليتشا"],b:["Live mullet or small fish, big lures","בורי חי או דג קטן, פיתיונות גדולים","بوري حيّ أو سمكة صغيرة، طُعوم كبيرة"],m:[3,4,5,6,9,10,11],sst:[17,27],wave:"any",water:"murky",light:["golden"],hab:["harbor","sand"]},
+ {sci:"Sphyraena spp.",n:["Barracuda","ברקודה","باراكودا"],b:["Small metal lures, minnow lures","פיתיונות מתכת קטנים, דגיגים מלאכותיים","طُعوم معدنية صغيرة، سمكات صناعية"],m:[6,7,8,9,10,11],sst:[21,30],wave:"calm",water:"clear",light:["golden","day"],hab:["harbor","rock"]}];
+
+// ================= state & helpers =================
+const TZ="Asia/Jerusalem";
+const $=id=>document.getElementById(id);
+function ls(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function ss(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+const S={lang:ls("sdp-lang","ar"),spot:ls("sdp-spot","jaf"),sel:null,clarO:null};
+let TIMES=[],D={},NOW=0,LOADED=null,MOON=null;
+const tx=()=>T[S.lang];
+const fx=(k,st)=>FX[k][st][LI[S.lang]];
+const nm=s=>s.n[LI[S.lang]];
+const esc=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hourF=new Intl.DateTimeFormat("en-GB",{hour:"2-digit",hourCycle:"h23",timeZone:TZ});
+const monthF=new Intl.DateTimeFormat("en-GB",{month:"numeric",timeZone:TZ});
+const hourOf=t=>Number(hourF.format(t));
+const fmtT=t=>t.toLocaleTimeString(LOC[S.lang],{hour:"2-digit",minute:"2-digit",hour12:false,timeZone:TZ});
+const fmtD=t=>t.toLocaleDateString(LOC[S.lang],{weekday:"short",timeZone:TZ});
+const fmtDT=t=>fmtD(t)+" "+fmtT(t);
+const col=c=>`var(--${c})`;
+
+// ================= astronomy (SunCalc method) =================
+const rad=Math.PI/180,dayMs=864e5,J1970=2440588,J2000=2451545,EPS=rad*23.4397;
+const toJ=d=>d.valueOf()/dayMs-.5+J1970, fromJ=j=>new Date((j+.5-J1970)*dayMs), toDays=d=>toJ(d)-J2000;
+function sunTimes(date,lat,lon){
+ const lw=rad*-lon,phi=rad*lat,d=toDays(date),n=Math.round(d-.0009-lw/(2*Math.PI)),ds=.0009+lw/(2*Math.PI)+n;
+ const M=rad*(357.5291+.98560028*ds),C=rad*(1.9148*Math.sin(M)+.02*Math.sin(2*M)+.0003*Math.sin(3*M)),L=M+C+rad*102.9372+Math.PI;
+ const dec=Math.asin(Math.sin(EPS)*Math.sin(L)),Jn=J2000+ds+.0053*Math.sin(M)-.0069*Math.sin(2*L);
+ const w=Math.acos((Math.sin(-.833*rad)-Math.sin(phi)*Math.sin(dec))/(Math.cos(phi)*Math.cos(dec)));
+ const a=.0009+(w+lw)/(2*Math.PI)+n,Js=J2000+a+.0053*Math.sin(M)-.0069*Math.sin(2*L);
+ return {rise:fromJ(Jn-(Js-Jn)),set:fromJ(Js)};
+}
+function moonAlt(date,lat,lon){
+ const lw=rad*-lon,phi=rad*lat,d=toDays(date);
+ const L=rad*(218.316+13.176396*d),M=rad*(134.963+13.064993*d),F=rad*(93.272+13.229350*d);
+ const l=L+rad*6.289*Math.sin(M),b=rad*5.128*Math.sin(F);
+ const ra=Math.atan2(Math.sin(l)*Math.cos(EPS)-Math.tan(b)*Math.sin(EPS),Math.cos(l));
+ const dec=Math.asin(Math.sin(b)*Math.cos(EPS)+Math.cos(b)*Math.sin(EPS)*Math.sin(l));
+ const H=rad*(280.16+360.9856235*d)-lw-ra;
+ return Math.asin(Math.sin(phi)*Math.sin(dec)+Math.cos(phi)*Math.cos(dec)*Math.cos(H));
+}
+const SYN=29.530588853;
+function moonPhase(t){const jd=t.valueOf()/dayMs+2440587.5;let p=((jd-2451550.1)/SYN)%1;if(p<0)p+=1;return p}
+function moonEvents(from,to){
+ const ev={rise:[],set:[],over:[],under:[]},step=10*60000,h0=.0023;
+ let tP=new Date(from-step),aP=moonAlt(tP,32.1,34.8),tC=new Date(+from),aC=moonAlt(tC,32.1,34.8);
+ for(let t=+from+step;t<=+to;t+=step){
+  const tN=new Date(t),aN=moonAlt(tN,32.1,34.8);
+  if(aP<h0&&aC>=h0)ev.rise.push(tC); if(aP>=h0&&aC<h0)ev.set.push(tC);
+  if(aC>aP&&aC>=aN)ev.over.push(tC); if(aC<aP&&aC<=aN)ev.under.push(tC);
+  tP=tC;aP=aC;tC=tN;aC=aN;
+ }
+ return ev;
+}
+const minDist=(t,arr)=>arr.reduce((m,x)=>Math.min(m,Math.abs(t-x)/6e4),1e9);
+
+// ================= data =================
+async function getJSON(u){const r=await fetch(u);if(!r.ok)throw new Error(r.status);return r.json()}
+async function loadSpot(s){
+ const c="past_days=2&forecast_days=4&timezone=GMT";
+ const W=getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${s.lat}&longitude=${s.lon}&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,precipitation,cloud_cover,weather_code&wind_speed_unit=kmh&${c}`);
+ const M=getJSON(`https://marine-api.open-meteo.com/v1/marine?latitude=${s.slat}&longitude=${s.slon}&hourly=wave_height,wave_direction,wave_period,sea_surface_temperature&${c}`).catch(()=>null);
+ const Tl=getJSON(`https://marine-api.open-meteo.com/v1/marine?latitude=${s.slat}&longitude=${s.slon}&hourly=sea_level_height_msl&${c}`).catch(()=>null);
+ const [w,m,t]=await Promise.all([W,M,Tl]);return {w,m,t};
+}
+function align(times,src,key){
+ if(!src||!src.hourly||!src.hourly[key])return times.map(()=>null);
+ const idx={};src.hourly.time.forEach((s,i)=>idx[s]=i);
+ return times.map(s=>{const i=idx[s];const v=i==null?null:src.hourly[key][i];return v==null?null:v});
+}
+async function loadAll(){
+ $("banner").innerHTML=`<div class="banner">${tx().loading}</div>`;
+ try{
+  const res=await Promise.allSettled(SPOTS.map(loadSpot));
+  const first=res.find(r=>r.status==="fulfilled");
+  if(!first)throw new Error("no data");
+  const ts=first.value.w.hourly.time,store={};
+  res.forEach((r,k)=>{if(r.status!=="fulfilled")return;const {w,m,t}=r.value;
+   store[SPOTS[k].id]={wind:align(ts,w,"wind_speed_10m"),dir:align(ts,w,"wind_direction_10m"),gust:align(ts,w,"wind_gusts_10m"),pres:align(ts,w,"pressure_msl"),
+    rain:align(ts,w,"precipitation"),cloud:align(ts,w,"cloud_cover"),code:align(ts,w,"weather_code"),wave:align(ts,m,"wave_height"),wper:align(ts,m,"wave_period"),
+    sst:align(ts,m,"sea_surface_temperature"),sea:align(ts,t,"sea_level_height_msl")};});
+  ss("sdp-cache",{at:Date.now(),ts,store});
+  setData(ts,store,Date.now(),false);
+ }catch(e){
+  const c=ls("sdp-cache",null);
+  if(c&&Date.now()-c.at<36*3600e3){setData(c.ts,c.store,c.at,true)}
+  else{LOADED=null;$("app").hidden=true;$("banner").innerHTML=`<div class="banner err">${tx().err}</div>`;renderOffline()}
+ }
+}
+function setData(ts,store,at,cached){
+ TIMES=ts.map(s=>new Date(s+"Z"));D=store;LOADED={at,cached};
+ const now=Date.now();NOW=0;TIMES.forEach((t,i)=>{if(+t<=now)NOW=i});
+ if(!D[S.spot])S.spot=Object.keys(D)[0];
+ S.sel=NOW;
+ MOON=moonEvents(new Date(+TIMES[0]-dayMs),new Date(+TIMES[TIMES.length-1]+dayMs));
+ $("banner").innerHTML=cached?`<div class="banner">${tx().cached} ${fmtDT(new Date(at))}</div>`:"";
+ $("app").hidden=false;$("moonOffline").hidden=true;render();
+}
+
+// ================= scoring =================
+function clarityAt(s,i){
+ const d=D[s.id];let h=0,r=0;
+ for(let k=Math.max(0,i-36);k<=i;k++)h=Math.max(h,d.wave[k]||0);
+ for(let k=Math.max(0,i-48);k<=i;k++)r+=d.rain[k]||0;
+ const v=h*.9+r/8+s.turb;
+ let c=v<.55?0:v<1.15?1:v<1.9?2:3;
+ if(S.clarO!=null&&Math.abs(i-NOW)<=12)c=S.clarO;
+ return c;
+}
+function lightAt(i,cloud){
+ const t=TIMES[i],st=sunTimes(t,32.1,34.8),m=Math.min(Math.abs(t-st.rise),Math.abs(t-st.set))/6e4;
+ if(m<=90)return "golden"; if(t<st.rise||t>st.set)return "night"; return (cloud!=null&&cloud>=70)?"overcast":"day";
+}
+function evalAt(s,i){
+ const d=D[s.id],F={},warns=[];let unsafe=false;
+ const wv=d.wave[i];
+ if(wv==null)F.waves={p:11,m:22,st:"na"};
+ else if(wv<.2)F.waves={p:12,m:22,st:"flat"};else if(wv<.4)F.waves={p:18,m:22,st:"small"};
+ else if(wv<=1)F.waves={p:22,m:22,st:"ideal"};else if(wv<=1.3)F.waves={p:14,m:22,st:"rough"};
+ else if(wv<=1.7)F.waves={p:6,m:22,st:"high"};else{F.waves={p:0,m:22,st:"danger"};unsafe=true}
+ const w=d.wind[i]||0,g=d.gust[i]||0;
+ if(w<=12)F.wind={p:13,m:13,st:"calm"};else if(w<=20)F.wind={p:10,m:13,st:"moderate"};else if(w<=30)F.wind={p:6,m:13,st:"fresh"};
+ else if(w<=40)F.wind={p:2,m:13,st:"strong"};else{F.wind={p:0,m:13,st:"danger"};unsafe=true}
+ if(g>=60)unsafe=true;
+ const dir=d.dir[i]||0,diff=Math.abs(((dir-s.sea+540)%360)-180),on=Math.cos(diff*rad);
+ if(w<8)F.dir={p:10,m:10,st:"light"};
+ else F.dir={p:Math.round(10-7*Math.max(0,on)*Math.min(1,w/25)),m:10,st:on>.5?"onshore":on<-.5?"offshore":"cross"};
+ const tr=presTrend(d,i);
+ F.pres={p:{fallslow:12,steady:9,riseslow:7,risefast:4,fallfast:6}[tr],m:12,st:tr};
+ const lt=lightAt(i,d.cloud[i]);
+ F.light={p:{golden:15,night:10,overcast:10,day:6}[lt],m:15,st:lt};
+ const t=TIMES[i],ph=moonPhase(t),near=Math.min(ph*SYN,(1-ph)*SYN,Math.abs(ph-.5)*SYN);
+ const major=minDist(t,MOON.over.concat(MOON.under))<=60,minor=minDist(t,MOON.rise.concat(MOON.set))<=30;
+ F.moon={p:(near<=3?4:2)+(major?6:minor?4:1),m:10,st:major?"major":minor?"minor":"none",peak:near<=3};
+ const c=clarityAt(s,i);
+ F.clar={p:[6,10,7,2][c],m:10,st:["clear","slight","murky","muddy"][c],lvl:c};
+ const sea=d.sea;
+ if(sea[i]==null)F.tide={p:3,m:5,st:"na"};
+ else{let mx=0;for(let k=Math.max(1,i-24);k<Math.min(sea.length-1,i+24);k++)if(sea[k+1]!=null&&sea[k-1]!=null)mx=Math.max(mx,Math.abs(sea[k+1]-sea[k-1]));
+  const r=(sea[i+1]!=null&&sea[i-1]!=null)?Math.abs(sea[i+1]-sea[i-1]):0;
+  F.tide=(mx>0&&r>.35*mx)?{p:5,m:5,st:"moving"}:{p:2,m:5,st:"slack"}}
+ const sst=d.sst[i];
+ F.sst=sst==null?{p:2,m:3,st:"na"}:(sst>=16&&sst<=28?{p:3,m:3,st:"ok"}:{p:1,m:3,st:"off"});
+ if(d.code[i]!=null&&d.code[i]>=95)unsafe=true;
+ let total=Object.values(F).reduce((a,f)=>a+f.p,0);
+ total=Math.max(0,Math.min(100,total));
+ return {total,F,unsafe};
+}
+function presTrend(d,i){
+ const p=d.pres;if(i<3||p[i]==null||p[i-3]==null)return "steady";
+ const dp=p[i]-p[i-3];
+ return dp<=-2?"fallfast":dp<=-.5?"fallslow":dp>=2?"risefast":dp>=.5?"riseslow":"steady";
+}
+const scoreCol=v=>v>=60?"green":v>=40?"yellow":"red";
+const level=v=>v>=70?3:v>=55?2:v>=40?1:0;
+
+// ================= charts =================
+const BW=6;
+function axis(start,end,H,bot){
+ let s="";
+ for(let i=start;i<=end;i++){const x=(i-start)*BW,h=hourOf(TIMES[i]);
+  if(h===0){s+=`<line x1="${x}" x2="${x}" y1="4" y2="${H-bot}" class="grid"/><text x="${x+2}" y="${H-3}" class="dl">${esc(fmtD(TIMES[i]))}</text>`}
+  else if(h%6===0)s+=`<text x="${x+BW/2}" y="${H-12}" class="hl" text-anchor="middle">${String(h).padStart(2,"0")}</text>`}
+ return s;
+}
+function marks(start,end,H,bot){
+ let s="";
+ if(S.sel>=start&&S.sel<=end)s+=`<rect class="selb" x="${(S.sel-start)*BW}" y="0" width="${BW}" height="${H-bot}"/>`;
+ if(NOW>=start&&NOW<=end)s+=`<line class="nowl" x1="${(NOW-start)*BW+BW/2}" x2="${(NOW-start)*BW+BW/2}" y1="0" y2="${H-bot}"/>`;
+ for(let i=start;i<=end;i++)s+=`<rect class="hit" data-i="${i}" x="${(i-start)*BW}" y="0" width="${BW}" height="${H}"/>`;
+ return s;
+}
+function win(){const start=NOW,end=Math.min(TIMES.length-1,NOW+71);return [start,end]}
+function barChart(vals,min,max,colorFn,H=120){
+ const [a,b]=win(),W=(b-a+1)*BW,bot=24,ph=H-bot-6;
+ let s=`<svg class="ch" viewBox="0 0 ${W} ${H}">`+axis(a,b,H,bot);
+ for(let i=a;i<=b;i++){const v=vals[i];if(v==null)continue;const hh=Math.max(1,(Math.min(max,Math.max(min,v))-min)/(max-min)*ph);
+  s+=`<rect x="${(i-a)*BW+.6}" y="${H-bot-hh}" width="${BW-1.2}" height="${hh}" rx="1" fill="${col(colorFn(v,i))}"/>`}
+ return s+marks(a,b,H,bot)+"</svg>";
+}
+function lineChart(vals,min,max,colorFn,H=120,extra=""){
+ const [a,b]=win(),W=(b-a+1)*BW,bot=24,ph=H-bot-14,y=v=>H-bot-(Math.min(max,Math.max(min,v))-min)/(max-min)*ph;
+ let s=`<svg class="ch" viewBox="0 0 ${W} ${H}">`+axis(a,b,H,bot),pts=[];
+ for(let i=a;i<=b;i++)if(vals[i]!=null)pts.push(`${(i-a)*BW+BW/2},${y(vals[i]).toFixed(1)}`);
+ s+=`<polyline points="${pts.join(" ")}" fill="none" stroke="var(--muted)" stroke-width="1.2"/>`;
+ for(let i=a;i<=b;i+=2)if(vals[i]!=null)s+=`<circle cx="${(i-a)*BW+BW/2}" cy="${y(vals[i])}" r="2.2" fill="${col(colorFn(vals[i],i))}"/>`;
+ return s+extra+marks(a,b,H,bot)+"</svg>";
+}
+function arrowSVG(dir,size,color){
+ // points where the wind blows TO
+ return `<svg width="${size}" height="${size}" viewBox="-10 -10 20 20" aria-hidden="true"><g transform="rotate(${(dir+180)%360})"><path d="M0 -8 L5 3 L1 1.5 L1 8 L-1 8 L-1 1.5 L-5 3 Z" fill="${color}"/></g></svg>`;
+}
+function arrowRow(d){
+ const [a,b]=win(),W=(b-a+1)*BW,H=22;let s=`<svg class="ch arrowrow" viewBox="0 0 ${W} ${H}">`;
+ for(let i=a;i<=b;i+=3){if(d.dir[i]==null)continue;const x=(i-a)*BW+BW/2;
+  s+=`<g transform="translate(${x} 11) rotate(${(d.dir[i]+180)%360})"><path d="M0 -8 L4.5 2.5 L1 1.2 L1 8 L-1 8 L-1 1.2 L-4.5 2.5 Z" fill="${col(windC(d.wind[i]||0))}"/></g>`}
+ return s+"</svg>";
+}
+const windC=v=>v<15?"green":v<=30?"yellow":"red";
+const presC=v=>v<1009?"yellow":v<1020?"green":"red";
+const waveC=v=>v>=1.3?"red":"green";
+const dirName=deg=>tx().dirs[Math.round(((deg%360)+360)%360/45)%8];
+
+// ================= render =================
+function render(){
+ document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==="en"?"ltr":"rtl";
+ document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.l===S.lang));
+ $("title").textContent=tx().title;$("tag").textContent=tx().tag;$("refresh").textContent=tx().refresh;
+ renderSci();
+ if(!LOADED){$("upd").textContent="";renderOffline();return}
+ $("upd").textContent=`${tx().upd}: ${fmtDT(new Date(LOADED.at))}`;
+ const spot=SPOTS.find(s=>s.id===S.spot),d=D[spot.id],i=S.sel;
+ const R={};SPOTS.forEach(s=>{if(D[s.id])R[s.id]=evalAt(s,i)});
+ renderMap(R);renderScore(spot,R[spot.id]);renderTimeline(spot);
+ renderMoon(i);renderTide(spot,d,i);renderWind(spot,d,i);renderPres(d,i);renderWaves(d,i);renderClar(spot,i);renderFish(spot,d,i,R[spot.id]);
+}
+function renderMap(R){
+ const X=lon=>(lon-34.45)*.845*230,Y=lat=>(33.15-lat)*230;
+ const coast=[[33.15,35.11],[33.10,35.105],[33.05,35.10],[33.00,35.09],[32.95,35.075],[32.92,35.065],[32.90,35.075],[32.86,35.08],[32.83,35.07],[32.81,35.04],[32.82,35.00],[32.835,34.975],[32.83,34.955],[32.79,34.955],[32.73,34.94],[32.68,34.925],[32.61,34.915],[32.55,34.90],[32.50,34.89],[32.45,34.875],[32.40,34.865],[32.33,34.85],[32.25,34.83],[32.17,34.80],[32.10,34.775],[32.05,34.75],[32.00,34.735],[31.93,34.695],[31.85,34.66],[31.80,34.63],[31.73,34.585],[31.67,34.55],[31.60,34.50],[31.55,34.47]];
+ const pts=coast.map(([la,lo])=>`${X(lo).toFixed(1)},${Y(la).toFixed(1)}`);
+ const ids=Object.keys(R),best=ids.reduce((a,b)=>(!R[b].unsafe&&(R[a].unsafe||R[b].total>R[a].total))?b:a,ids[0]);
+ let s=`<svg viewBox="0 0 156 368" role="img" aria-label="${esc(tx().map)}"><polygon class="land" points="${pts.join(" ")} ${X(35.25)},${Y(31.55)} ${X(35.25)},${Y(33.15)}"/><polyline class="coast" points="${pts.join(" ")}"/>`;
+ SPOTS.forEach(sp=>{if(!R[sp.id])return;const r=R[sp.id],x=X(sp.lon)-4,y=Y(sp.lat),c=r.unsafe?"red":scoreCol(r.total);
+  if(sp.id===best)s+=`<circle class="pulse" cx="${x}" cy="${y}" r="9" fill="none" stroke="${col("green")}" stroke-width="2"/>`;
+  s+=`<g class="mk" data-s="${sp.id}"><circle cx="${x}" cy="${y}" r="9" fill="${col(c)}" stroke="${sp.id===S.spot?"var(--ink)":"#fff"}" stroke-width="${sp.id===S.spot?2.5:1}"/><text x="${x}" y="${y+3}" text-anchor="middle">${r.unsafe?"!":r.total}</text></g>`});
+ $("map").innerHTML=s+"</svg>";
+ $("tMap").textContent=tx().map;
+ $("rank").innerHTML=SPOTS.filter(sp=>R[sp.id]).map(sp=>{const r=R[sp.id],c=r.unsafe?"red":scoreCol(r.total);
+  return `<li><button data-s="${sp.id}" aria-current="${sp.id===S.spot}"><span class="dot" style="background:${col(c)}"></span><span class="nm">${esc(nm(sp))}${sp.id===best?`<span class="best">${tx().bestNow}</span>`:""}</span><span class="pc">${r.unsafe?"⚠":r.total+"%"}</span></button></li>`}).join("");
+ // alerts
+ let al="";const safe=ids.filter(k=>!R[k].unsafe);
+ if(safe.length>1){const worst=safe.reduce((a,b)=>R[b].total<R[a].total?b:a,safe[0]);
+  if(R[best].total-R[worst].total>=15){let fk="waves",md=-1;Object.keys(R[best].F).forEach(k=>{const df=R[best].F[k].p-R[worst].F[k].p;if(df>md){md=df;fk=k}});
+   al+=`<div class="alert">${esc(tx().diff(nm(SPOTS.find(s=>s.id===best)),nm(SPOTS.find(s=>s.id===worst)),tx().fn[fk]))}</div>`}}
+ ids.filter(k=>R[k].unsafe).forEach(k=>al+=`<div class="alert red">${esc(tx().unsafeAt(nm(SPOTS.find(s=>s.id===k))))}</div>`);
+ $("alerts").innerHTML=al;
+}
+function ring(v,c){
+ const r=48,C=2*Math.PI*r,off=C*(1-v/100);
+ return `<svg class="ring" viewBox="0 0 118 118"><circle cx="59" cy="59" r="${r}" fill="none" stroke="var(--chip)" stroke-width="12"/><circle cx="59" cy="59" r="${r}" fill="none" stroke="${col(c)}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 59 59)"/><text x="59" y="64" text-anchor="middle" class="pct">${v}%</text><text x="59" y="82" text-anchor="middle" class="lbl"></text></svg>`;
+}
+function renderScore(spot,r){
+ const t=TIMES[S.sel],c=r.unsafe?"red":scoreCol(r.total);
+ const verdict=r.unsafe?tx().danger:tx().lv[level(r.total)];
+ // best window next 48h
+ let bi=NOW,bv=-1;for(let k=NOW;k<=Math.min(TIMES.length-2,NOW+48);k++){const e=evalAt(spot,k);if(!e.unsafe){const v=(e.total+evalAt(spot,k+1).total)/2;if(v>bv){bv=v;bi=k}}}
+ const ups=[],downs=[];
+ Object.entries(r.F).forEach(([k,f])=>{if(f.st==="na")return;const q=f.p/f.m;let txt=fx(k,f.st);if(k==="moon"&&f.peak)txt+=fx("moon","peak");
+  const li=`<li><b>${esc(tx().fN[k])}:</b> ${esc(txt)}</li>`;if(q>=.75)ups.push([q,li]);else if(q<=.5)downs.push([q,li])});
+ ups.sort((a,b)=>b[0]-a[0]);downs.sort((a,b)=>a[0]-b[0]);
+ const fg=Object.entries(r.F).map(([k,f])=>{const q=f.p/f.m;return `<div class="fg">${esc(tx().fN[k])} <b style="color:var(--ink)">${f.p}/${f.m}</b><div class="mb"><i style="width:${Math.round(q*100)}%;background:${col(q>=.7?"green":q>=.45?"yellow":"red")}"></i></div></div>`}).join("");
+ $("scorePanel").innerHTML=`<div class="scoreTop">${ring(r.total,c)}<div><div class="where">${esc(nm(spot))}</div><div class="when">${S.sel===NOW?tx().now:esc(fmtDT(t))} · ${tx().chance}</div><div class="verdict" style="color:${col(c)}">${esc(verdict)}</div></div></div>
+ ${r.unsafe?`<div class="warn">${esc(tx().danger)}</div>`:""}
+ <div class="bestwin">${tx().bestWin}: <b>${esc(fmtD(TIMES[bi]))} <span class="n">${esc(fmtT(TIMES[bi]))}–${esc(fmtT(new Date(+TIMES[bi]+2*36e5)))}</span></b> <span class="n">(${Math.round(bv)}%)</span></div>
+ <div class="why">${ups.length?`<h3 style="color:${col("green")}">▲ ${tx().up}</h3><ul>${ups.map(x=>x[1]).join("")}</ul>`:""}${downs.length?`<h3 style="color:${col("red")}">▼ ${tx().down}</h3><ul>${downs.map(x=>x[1]).join("")}</ul>`:""}</div>
+ <h3 style="font-size:.95rem;margin:14px 0 0">${tx().factors}</h3><div class="fgrid">${fg}</div>`;
+}
+function renderTimeline(spot){
+ $("tTimeline").textContent=tx().timeline;$("backNow").textContent=tx().backNow;$("backNow").hidden=S.sel===NOW;
+ $("selLbl").innerHTML=`${tx().showing}: <b>${S.sel===NOW?tx().now:esc(fmtDT(TIMES[S.sel]))}</b>`;
+ const vals=TIMES.map((_,i)=>{const e=evalAt(spot,i);return e.unsafe?3:e.total});
+ $("timeline").innerHTML=barChart(vals,0,100,(v)=>v<=3?"red":scoreCol(v),130);
+ $("scoreLegend").innerHTML=`<span style="--c:var(--green)" class="n">≥ 60%</span><span style="--c:var(--yellow)" class="n">40–59%</span><span style="--c:var(--red)" class="n">&lt; 40%</span>`;
+}
+function moonDraw(p,size){
+ const r=size/2-2,c=size/2,k=Math.cos(2*Math.PI*p),rx=Math.abs(k)*r,wax=p<.5;
+ const sweep=wax?1:0,bulge=k<0?(wax?1:0):(wax?0:1);
+ return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${c}" cy="${c}" r="${r}" fill="var(--chip)" stroke="var(--line)"/><path d="M${c} ${c-r} A${r} ${r} 0 0 ${sweep} ${c} ${c+r} A${rx} ${r} 0 0 ${bulge} ${c} ${c-r} Z" fill="#F1D98A"/></svg>`;
+}
+function moonHTML(t){
+ const p=moonPhase(t),ill=Math.round((1-Math.cos(2*Math.PI*p))/2*100),name=tx().phases[Math.floor((p*8+.5)%8)];
+ const toFull=((.5-p+1)%1)*SYN,toNew=((1-p)%1)*SYN,st=sunTimes(t,32.1,34.8);
+ let list="";
+ if(MOON){const evs=[];const end=+t+48*36e5;
+  [["over",tx().over],["under",tx().under],["rise",tx().rise],["set",tx().set]].forEach(([k,l])=>MOON[k].forEach(x=>{if(+x>=+t&&+x<=end)evs.push([x,l,k])}));
+  evs.sort((a,b)=>a[0]-b[0]);
+  list=`<h3 style="font-size:.92rem;margin:12px 0 6px">${tx().moonNext}</h3><div class="cols">${evs.map(([x,l,k])=>`<div class="kv" style="${k==="over"||k==="under"?"border-inline-start:4px solid var(--green)":""}"><span>${esc(l)}</span><b>${esc(fmtD(x))} ${esc(fmtT(x))}</b></div>`).join("")}</div>`}
+ return `<h2>${tx().moon}</h2><div class="moonTop">${moonDraw(p,72)}<div><div class="big"><strong>${esc(name)}</strong></div><div class="small">${tx().lit}: <b>${ill}%</b> · ${tx().full} ${Math.round(toFull)} ${tx().days} · ${tx().newm} ${Math.round(toNew)} ${tx().days}</div><div class="small">${tx().sun}: <b>${esc(fmtT(st.rise))}</b> / <b>${esc(fmtT(st.set))}</b></div></div></div>${list}`;
+}
+function renderMoon(i){$("moonPanel").innerHTML=moonHTML(TIMES[i])}
+function renderOffline(){
+ const now=new Date();MOON=moonEvents(new Date(+now-dayMs),new Date(+now+3*dayMs));
+ $("moonOffline").hidden=false;$("moonOffline").innerHTML=moonHTML(now);
+}
+function renderTide(spot,d,i){
+ const sea=d.sea;
+ if(sea[i]==null){$("tidePanel").innerHTML=`<h2>${tx().tide}</h2><p class="small">${tx().tideNA}</p>`;return}
+ const rising=sea[i+1]!=null?sea[i+1]>=sea[i]:sea[i]>=sea[i-1];
+ const [a,b]=win();let nh=null,nl=null,ex="";
+ const vals=sea.filter(v=>v!=null),mn=Math.min(...vals)-.03,mx=Math.max(...vals)+.03,H=130,bot=24,ph=H-bot-14,y=v=>H-bot-(v-mn)/(mx-mn)*ph;
+ for(let k=Math.max(1,a);k<Math.min(sea.length-1,b);k++){if(sea[k]==null||sea[k-1]==null||sea[k+1]==null)continue;
+  const hi=sea[k]>sea[k-1]&&sea[k]>=sea[k+1],lo=sea[k]<sea[k-1]&&sea[k]<=sea[k+1];
+  if(hi||lo){ex+=`<text class="ex" x="${(k-a)*BW+BW/2}" y="${hi?y(sea[k])-5:y(sea[k])+11}" text-anchor="middle">${hi?"▲":"▼"}${esc(fmtT(TIMES[k]))}</text>`;
+   if(k>i){if(hi&&!nh)nh=TIMES[k];if(lo&&!nl)nl=TIMES[k]}}}
+ let area=`<polygon points="${(()=>{let p=[];for(let k=a;k<=b;k++)if(sea[k]!=null)p.push(`${(k-a)*BW+BW/2},${y(sea[k]).toFixed(1)}`);return `0,${H-bot} ${p.join(" ")} ${(b-a)*BW+BW/2},${H-bot}`})()}" fill="var(--sea)" opacity=".18"/>`;
+ const W=(b-a+1)*BW;let s=`<svg class="ch" viewBox="0 0 ${W} ${H}">`+axis(a,b,H,bot)+area;
+ let pts=[];for(let k=a;k<=b;k++)if(sea[k]!=null)pts.push(`${(k-a)*BW+BW/2},${y(sea[k]).toFixed(1)}`);
+ s+=`<polyline points="${pts.join(" ")}" fill="none" stroke="var(--sea)" stroke-width="2"/>`+ex+marks(a,b,H,bot)+"</svg>";
+ $("tidePanel").innerHTML=`<h2>${tx().tide}</h2><div class="big"><strong>${rising?"↑ "+tx().rising:"↓ "+tx().falling}</strong><span class="small n">${Math.round(sea[i]*100)} cm</span></div>
+ <div class="cols" style="margin-bottom:8px">${nh?`<div class="kv"><span>${tx().nextHigh}</span><b>${esc(fmtDT(nh))}</b></div>`:""}${nl?`<div class="kv"><span>${tx().nextLow}</span><b>${esc(fmtDT(nl))}</b></div>`:""}</div>
+ <div data-chart>${s}</div><p class="small" style="margin-top:8px">${tx().tideNote}</p>`;
+}
+function renderWind(spot,d,i){
+ const w=d.wind[i]||0,g=d.gust[i]||0,dir=d.dir[i]||0,c=windC(w),lb=tx().windL[c==="green"?0:c==="yellow"?1:2];
+ const diff=Math.abs(((dir-spot.sea+540)%360)-180),on=Math.cos(diff*rad),rel=on>.5?tx().onshore:on<-.5?tx().offshore:tx().cross;
+ let mx=0,sx=0,sy=0;for(let k=i;k<=Math.min(TIMES.length-1,i+24);k++){mx=Math.max(mx,d.wind[k]||0);sx+=(d.wind[k]||0)*Math.sin((d.dir[k]||0)*rad);sy+=(d.wind[k]||0)*Math.cos((d.dir[k]||0)*rad)}
+ const dom=(Math.atan2(sx,sy)/rad+360)%360;
+ $("windPanel").innerHTML=`<h2>${tx().windT}</h2>
+ <div class="big"><strong class="n">${Math.round(w)} km/h</strong><span class="pill" style="background:${col(c)}">${lb}</span><span class="small">${tx().gust}: <span class="n">${Math.round(g)} km/h</span></span></div>
+ <div class="dirnow">${arrowSVG(dir,54,col(c))}<div><div><b>${tx().from} ${esc(dirName(dir))}</b> (${Math.round(dir)}°)</div><div class="small">${esc(rel)}</div></div></div>
+ <div data-chart>${barChart(d.wind,0,50,v=>windC(v))}${arrowRow(d)}</div>
+ <div class="legend"><span style="--c:var(--green)">${tx().windL[0]} <b class="n">&lt; 15 km/h</b></span><span style="--c:var(--yellow)">${tx().windL[1]} <b class="n">15–30 km/h</b></span><span style="--c:var(--red)">${tx().windL[2]} <b class="n">&gt; 30 km/h</b></span></div>
+ <p class="small" style="margin-top:6px">${tx().next24}: ${tx().maxW} <b class="n">${Math.round(mx)} km/h</b>${S.lang==="ar"?"،":","} ${tx().mostly} <b>${esc(dirName(dom))}</b></p>`;
+}
+function renderPres(d,i){
+ const p=d.pres[i];if(p==null){$("presPanel").innerHTML="";return}
+ const c=presC(p),lb=tx().presL[c==="yellow"?0:c==="green"?1:2],tr=presTrend(d,i);
+ const [a,b]=win(),vals=d.pres.slice(a,b+1).filter(v=>v!=null),mn=Math.min(...vals,1006)-1,mx=Math.max(...vals,1022)+1;
+ $("presPanel").innerHTML=`<h2>${tx().pres}</h2>
+ <div class="big"><strong class="n">${Math.round(p)} hPa</strong><span class="pill" style="background:${col(c)}">${lb}</span><span class="small">${tr.startsWith("fall")?"↘":tr.startsWith("rise")?"↗":"→"} ${esc(tx().trend[tr])}</span></div>
+ <div data-chart>${lineChart(d.pres,mn,mx,v=>presC(v))}</div>
+ <div class="legend"><span style="--c:var(--yellow)">${tx().presL[0]} <b class="n">&lt; 1009 hPa</b></span><span style="--c:var(--green)">${tx().presL[1]} <b class="n">1009–1019 hPa</b></span><span style="--c:var(--red)">${tx().presL[2]} <b class="n">≥ 1020 hPa</b></span></div>
+ <p class="small" style="margin-top:6px">${esc(fx("pres",tr))}</p>`;
+}
+function renderWaves(d,i){
+ const v=d.wave[i];if(v==null){$("wavePanel").innerHTML=`<h2>${tx().waves}</h2><p class="small">${fx("waves","na")}</p>`;return}
+ const c=waveC(v),lb=tx().waveL[v>=1.3?2:v>=.5?1:0],sst=d.sst[i],per=d.wper[i];
+ $("wavePanel").innerHTML=`<h2>${tx().waves}</h2>
+ <div class="big"><strong class="n">${v.toFixed(1)} m</strong><span class="pill" style="background:${col(c)}">${lb}</span>${per!=null?`<span class="small">${tx().period}: <span class="n">${per.toFixed(0)} s</span></span>`:""}${sst!=null?`<span class="small">${tx().sst}: <span class="n">${sst.toFixed(1)}°C</span></span>`:""}</div>
+ <div data-chart>${barChart(d.wave,0,2.5,x=>waveC(x))}</div>
+ <div class="legend"><span style="--c:var(--green)">${tx().waveL[0]} / ${tx().waveL[1]} <b class="n">&lt; 1.3 m</b></span><span style="--c:var(--red)">${tx().waveL[2]} <b class="n">≥ 1.3 m</b></span></div>`;
+}
+function renderClar(spot,i){
+ const c=clarityAt(spot,i),cols=["yellow","green","yellow","red"];
+ $("clarPanel").innerHTML=`<h2>${tx().clar}</h2>
+ <div class="big"><strong>${esc(tx().clarL[c])}</strong><span class="pill" style="background:${col(cols[c])}">${c===1?"✓":c===3?"✕":"~"}</span></div>
+ <div class="gauge">${cols.map((cc,k)=>`<div class="${k===c?"on":""}" style="background:${col(cc)}"></div>`).join("")}</div>
+ <div class="gl">${tx().clarL.map(x=>`<span>${esc(x)}</span>`).join("")}</div>
+ <p class="small" style="margin-top:8px">${esc(fx("clar",["clear","slight","murky","muddy"][c]))}</p>
+ <p class="small">${tx().clarEst}</p>
+ <div class="chips" id="clarChips"><button class="chip" data-c="" aria-pressed="${S.clarO==null}">${tx().auto}</button>${tx().clarL.map((x,k)=>`<button class="chip" data-c="${k}" aria-pressed="${S.clarO===k}">${esc(x)}</button>`).join("")}</div>`;
+}
+function renderFish(spot,d,i,r){
+ const t=TIMES[i],mo=Number(monthF.format(t)),sst=d.sst[i],wv=d.wave[i]==null?.6:d.wave[i],cl=r.F.clar.lvl,lt=r.F.light.st,L=LI[S.lang];
+ const fit=FISH.map(f=>{let s=f.m.includes(mo)?40:f.all?22:5;
+  s+=sst==null?8:(sst>=f.sst[0]&&sst<=f.sst[1]?15:3);
+  s+=f.wave==="rough"?((wv>=.5&&wv<=1.4)?12:4):f.wave==="calm"?(wv<.6?12:3):(wv<=1.2?10:4);
+  s+=f.water==="murky"?((cl===1||cl===2)?10:3):f.water==="clear"?((cl<=1)?10:3):7;
+  s+=f.light.includes(lt)?8:3; s+=f.hab.some(h=>spot.hab.includes(h))?15:2;
+  return [Math.min(100,s),f]}).sort((a,b)=>b[0]-a[0]).slice(0,6);
+ $("fishPanel").innerHTML=`<h2>${tx().fish}</h2>`+fit.map(([s,f])=>`<div class="fish"><div class="top"><b>${esc(f.n[L])} <i>${esc(f.sci)}</i></b><span class="pill" style="background:${col(scoreCol(s))}">${tx().match} ${s}%</span></div><div class="bait">🎣 ${tx().bait}: ${esc(f.b[L])}</div>${f.note?`<div class="note">⚠ ${esc(f.note[L])}</div>`:""}</div>`).join("");
+}
+function renderSci(){$("sciPanel").innerHTML=`<h2>${tx().sciT}</h2>`+tx().sci.map((p,k)=>`<p class="${k>=7?"small":""}">${esc(p)}</p>`).join("")}
+
+// ================= events =================
+document.querySelector(".lang").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.lang=b.dataset.l;ss("sdp-lang",S.lang);
+ if(LOADED&&LOADED.cached)$("banner").innerHTML=`<div class="banner">${tx().cached} ${fmtDT(new Date(LOADED.at))}</div>`;
+ else if(!LOADED&&$("banner").innerHTML)$("banner").innerHTML=`<div class="banner err">${tx().err}</div>`;
+ render()});
+document.addEventListener("click",e=>{
+ const sp=e.target.closest("[data-s]");if(sp){S.spot=sp.dataset.s;ss("sdp-spot",S.spot);render();return}
+ const h=e.target.closest("[data-i]");if(h){S.sel=+h.dataset.i;render();return}
+ const c=e.target.closest("#clarChips [data-c]");if(c){S.clarO=c.dataset.c===""?null:+c.dataset.c;render();return}
+});
+$("backNow").onclick=()=>{S.sel=NOW;render()};
+$("refresh").onclick=()=>loadAll();
+render();loadAll();
+</script>
+</body>
+</html>
