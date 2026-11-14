@@ -193,6 +193,11 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
 .fg2 figcaption{font-size:.72rem;color:var(--muted);margin-top:4px;line-height:1.35}
 .fg2 figcaption a{color:var(--muted)}
 .fg2 .marks{max-width:220px;margin:0 auto}
+.knot .kpics{display:grid;gap:8px;margin:6px 0 8px}
+.knot figure{margin:0}
+.ksvg{width:100%;height:auto;display:block;direction:ltr;background:var(--chip);border-radius:10px}
+.ksvg .kl{font-size:10px;fill:var(--ink)}
+.knot figcaption{font-size:.76rem;color:var(--muted);text-align:center;margin-top:3px}
 .fg2 .marksL{text-align:center;font-size:.76rem;color:var(--muted);margin:0 0 6px}
 .fg2 a{color:var(--sea)}
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:flex;justify-content:center;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -253,6 +258,7 @@ body[data-tab="today"] [data-tab]:not([data-tab="today"]),body[data-tab="map"] [
     <section class="panel" id="fishPanel" data-tab="today"></section>
     <section class="panel" id="fishGuide" data-tab="guide"></section>
     <section class="panel" id="rigPanel" data-tab="guide"></section>
+    <section class="panel" id="knotPanel" data-tab="guide"></section>
     <section class="panel" id="rulesPanel" data-tab="guide"></section>
   </div>
   <section class="panel" id="moonOffline" hidden></section>
@@ -648,12 +654,76 @@ he:{tabs:["היום","מפה","יומן","מדריך"],fishGuideT:"מדריך ד
 ar:{tabs:["اليوم","الخريطة","السجل","الدليل"],fishGuideT:"دليل الأسماك",photosLink:"صور حقيقية (ويكيبيديا)",drawNote:"الرسومات تُظهر العلامات التي يجب البحث عنها – تأكد أيضًا من الصور الحقيقية.",beachL:"الشاطئ",showFc:n=>`📊 توقعات ${n}`}};
 Object.keys(T4).forEach(l=>Object.assign(T[l],T4[l]));
 const T5={
-en:{keyMarks:"Key marks to look for",photoBy:"Photo",photosLink:"More photos (Wikipedia)",drawNote:"Photos come from Wikimedia Commons under free licences, credited to each photographer. The drawing under each photo shows the marks to look for."},
-he:{keyMarks:"סימנים לזיהוי",photoBy:"צילום",photosLink:"עוד תמונות (ויקיפדיה)",drawNote:"התמונות מוויקישיתוף ברישיונות חופשיים, עם קרדיט לכל צלם. הציור מתחת לכל תמונה מראה את הסימנים לזיהוי."},
-ar:{keyMarks:"علامات التعرّف",photoBy:"تصوير",photosLink:"صور أخرى (ويكيبيديا)",drawNote:"الصور من ويكيميديا كومنز برخص حرّة، مع ذكر اسم كل مصوّر. الرسم تحت كل صورة يُظهر علامات التعرّف."}};
+en:{photoErr:"Couldn’t reach Wikimedia to load the photos – check your internet, then open the Guide again.",photoCount:(a,b)=>`${a} of ${b} fish have a free photo.`,keyMarks:"Key marks to look for",photoBy:"Photo",photosLink:"More photos (Wikipedia)",drawNote:"Photos come from Wikimedia Commons under free licences, credited to each photographer. The drawing under each photo shows the marks to look for."},
+he:{photoErr:"לא ניתן להגיע לוויקימדיה כדי לטעון את התמונות – בדקו את החיבור ופתחו שוב את המדריך.",photoCount:(a,b)=>`ל־${a} מתוך ${b} דגים יש תמונה חופשית.`,keyMarks:"סימנים לזיהוי",photoBy:"צילום",photosLink:"עוד תמונות (ויקיפדיה)",drawNote:"התמונות מוויקישיתוף ברישיונות חופשיים, עם קרדיט לכל צלם. הציור מתחת לכל תמונה מראה את הסימנים לזיהוי."},
+ar:{photoErr:"تعذّر الوصول إلى ويكيميديا لتحميل الصور – تحقق من الإنترنت ثم افتح الدليل مرة أخرى.",photoCount:(a,b)=>`لدى ${a} من ${b} أسماك صورة حرّة.`,keyMarks:"علامات التعرّف",photoBy:"تصوير",photosLink:"صور أخرى (ويكيبيديا)",drawNote:"الصور من ويكيميديا كومنز برخص حرّة، مع ذكر اسم كل مصوّر. الرسم تحت كل صورة يُظهر علامات التعرّف."}};
 Object.keys(T5).forEach(l=>Object.assign(T[l],T5[l]));
 // Wikipedia article whose lead photo is used for each fish; licence is checked on Wikimedia Commons before showing it
 const PHOTO_TITLE={"Siganus rivulatus":"Siganus_rivulatus","Diplodus sargus":"Diplodus_sargus","Sillago sihama":"Sillago_sihama","Mugil cephalus":"Mugil_cephalus","Lithognathus mormyrus":"Lithognathus_mormyrus","Sparus aurata":"Sparus_aurata","Dicentrarchus labrax":"European_seabass","Pomatomus saltatrix":"Bluefish","Lichia amia":"Lichia_amia","Sphyraena spp.":"Sphyraena_sphyraena"};
+
+const KC={m:"var(--sea)",t:"#E67E22",o:"#8E5BD6",h:"#7F8C8D"};
+function crv(pts){if(pts.length<2)return"";let d=`M${pts[0][0]} ${pts[0][1]}`;
+ for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+  d+=` C${(p1[0]+(p2[0]-p0[0])/6).toFixed(1)} ${(p1[1]+(p2[1]-p0[1])/6).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])/6).toFixed(1)} ${(p2[1]-(p3[1]-p1[1])/6).toFixed(1)} ${p2[0]} ${p2[1]}`}
+ return d}
+const K={
+ hook:(x,y)=>`<circle cx="${x}" cy="${y}" r="6" fill="none" stroke="${KC.h}" stroke-width="3"/><path d="M${x} ${y+6} L${x} ${y+40} Q${x} ${y+52} ${x-10} ${y+52} Q${x-20} ${y+52} ${x-20} ${y+42} L${x-17} ${y+35}" fill="none" stroke="${KC.h}" stroke-width="3" stroke-linecap="round"/>`,
+ ln:(pts,c,o={})=>{let s=`<path d="${crv(pts)}" fill="none" stroke="${KC[c]}" stroke-width="2.4" stroke-linecap="round"${o.dash?' stroke-dasharray="4 3"':""}/>`;
+  if(o.arrow){const a=pts[pts.length-1],b=pts[pts.length-2],g=Math.atan2(a[1]-b[1],a[0]-b[0]),L=8,W=4.5;
+   const p1=[a[0]-L*Math.cos(g)+W*Math.sin(g),a[1]-L*Math.sin(g)-W*Math.cos(g)],p2=[a[0]-L*Math.cos(g)-W*Math.sin(g),a[1]-L*Math.sin(g)+W*Math.cos(g)];
+   s+=`<polygon points="${a[0]},${a[1]} ${p1[0].toFixed(1)},${p1[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}" fill="${KC[c]}"/>`}return s},
+ coils:(x1,x2,y,n,c,ry)=>{let s="";const w=(x2-x1)/n;for(let i=0;i<n;i++){const cx=(x1+w*(i+.5)).toFixed(1);s+=`<ellipse cx="${cx}" cy="${y}" rx="${(w*.42).toFixed(1)}" ry="${ry}" transform="rotate(-18 ${cx} ${y})" fill="none" stroke="${KC[c]}" stroke-width="2.2"/>`}return s},
+ twist:(x1,x2,y,n,amp,c)=>{const a=[],b=[];for(let x=x1;x<=x2;x+=2){const ph=(x-x1)/(x2-x1)*n*Math.PI;a.push([x,+(y+amp*Math.sin(ph)).toFixed(1)]);b.push([x,+(y-amp*Math.sin(ph)).toFixed(1)])}return `<path d="${crv(a)}" fill="none" stroke="${KC[c]}" stroke-width="2.4"/><path d="${crv(b)}" fill="none" stroke="${KC[c]}" stroke-width="2.4"/>`},
+ tx:(x,y,s)=>`<text x="${x}" y="${y}" class="kl">${s}</text>`,
+ cut:(x,y)=>`<text x="${x}" y="${y}" class="kl" style="font-size:14px">✂</text>`};
+const KNOTS={
+ clinch:{n:["Improved clinch knot","קשר קלינץ׳ משופר","عقدة الكلينش المحسّنة"],cap:["1","2–4","5"],
+  use:["Hooks, swivels and lures on nylon (mono). Not for braid.","קרסים, מסתובבים ופיתיונות על חוט ניילון (מונו). לא לחוט קלוע.","الصنانير والمِدوارات والطُّعوم على خيط النايلون (مونو). ليست للخيط المجدول."],
+  pics:[t=>K.hook(40,22)+K.ln([[218,20],[120,20],[60,20],[46,21]],"m")+K.ln([[36,25],[34,32],[46,38],[90,40],[140,40]],"t",{arrow:1})+K.tx(150,44,"↔ 15"),
+   t=>K.hook(40,22)+K.ln([[218,20],[46,21]],"m")+K.ln([[36,25],[34,32],[48,34],[60,26]],"t")+K.coils(60,120,20,6,"t",10)+K.ln([[122,26],[138,38],[126,50],[90,52],[56,46],[48,30]],"t",{arrow:1})+K.ln([[52,38],[60,44],[90,45]],"t",{arrow:1,dash:1})+K.tx(78,8,"5–7×"),
+   t=>K.hook(40,22)+K.ln([[218,21],[78,21]],"m")+K.coils(47,77,21,6,"t",7)+K.ln([[47,26],[52,33]],"t")+K.cut(56,46)],
+  steps:[["Pass the line through the hook eye and pull about 15 cm through.","Wrap the tag end around the main line 5–7 times.","Push the tag end through the small loop next to the eye.","Then pass it back through the big loop you just made.","Wet the knot, pull the main line slowly until tight, and trim the tag."],
+   ["השחילו את החוט דרך עין הקרס ומשכו כ־15 ס״מ.","לפפו את קצה החוט סביב החוט הראשי 5–7 פעמים.","הכניסו את הקצה דרך הלולאה הקטנה שליד העין.","ואז העבירו אותו חזרה דרך הלולאה הגדולה שנוצרה.","הרטיבו את הקשר, משכו לאט את החוט הראשי עד שהוא מהודק, וגזמו את הקצה."],
+   ["أدخل الخيط في عين الصنارة واسحب نحو 15 سم.","لُفّ طرف الخيط حول الخيط الرئيسي 5–7 مرات.","أدخل الطرف في الحلقة الصغيرة بجانب العين.","ثم مرّره عائدًا عبر الحلقة الكبيرة التي تكوّنت.","بلّل العقدة، واسحب الخيط الرئيسي ببطء حتى تُشدّ، ثم قصّ الطرف."]]},
+ palomar:{n:["Palomar knot","קשר פלומר","عقدة بالومار"],cap:["1","2","3–4"],
+  use:["Very strong for hooks and lures – the best choice with braid.","חזק מאוד לקרסים ולפיתיונות – הבחירה הטובה ביותר עם חוט קלוע.","قوية جدًا للصنانير والطُّعوم – الخيار الأفضل مع الخيط المجدول."],
+  pics:[t=>K.hook(60,24)+K.ln([[218,20],[110,20],[66,21],[50,20],[34,17],[22,22]],"m")+K.ln([[22,22],[30,30],[50,29],[66,28],[120,30],[160,30]],"t")+K.tx(10,60,"↔ 15"),
+   t=>K.ln([[218,20],[140,20],[110,16],[92,24],[104,34],[118,26],[108,14],[84,16],[50,22],[24,24]],"m")+K.ln([[170,24],[140,24],[110,20],[92,28],[104,38],[118,30],[108,18],[84,20],[50,26],[24,28]],"t")+K.ln([[24,24],[18,26],[24,28]],"m")+K.hook(100,40)+K.ln([[18,32],[22,58],[50,78],[80,82]],"m",{arrow:1,dash:1}),
+   t=>K.hook(50,24)+K.ln([[218,22],[72,22]],"m")+K.coils(56,72,23,2,"m",7)+K.ln([[58,28],[63,35]],"t")+K.cut(66,46)],
+  steps:[["Double about 15 cm of line and push the loop through the hook eye.","Tie a loose overhand knot with the doubled line, letting the hook hang below.","Pass the loop over the whole hook (or lure).","Wet it, pull the main line and the tag together to tighten, and trim."],
+   ["קפלו כ־15 ס״מ של חוט לכפול והכניסו את הלולאה דרך עין הקרס.","קשרו קשר פשוט ורופף עם החוט הכפול, כשהקרס תלוי למטה.","העבירו את הלולאה מעל כל הקרס (או הפיתיון).","הרטיבו, משכו יחד את החוט הראשי ואת הקצה כדי להדק, וגזמו."],
+   ["اثنِ نحو 15 سم من الخيط وأدخل الحلقة في عين الصنارة.","اربط عقدة بسيطة رخوة بالخيط المزدوج، واترك الصنارة متدلية في الأسفل.","مرّر الحلقة فوق الصنارة كلها (أو الطُّعم).","بلّلها، واسحب الخيط الرئيسي والطرف معًا لتشدّها، ثم قصّ."]]},
+ uni:{n:["Uni knot","קשר יוני","عقدة يوني"],cap:["1","2","3–4"],
+  use:["All-round knot for hooks and swivels, on nylon or braid.","קשר לכל מטרה לקרסים ומסתובבים, על ניילון או קלוע.","عقدة لكل الاستخدامات للصنانير والمِدوارات، على النايلون أو المجدول."],
+  pics:[t=>K.hook(40,22)+K.ln([[218,20],[46,21]],"m")+K.ln([[36,25],[34,32],[48,34],[130,32],[156,24],[150,10],[126,8],[100,18]],"t",{arrow:1}),
+   t=>K.hook(40,22)+K.ln([[218,20],[46,21]],"m")+K.ln([[36,25],[34,32],[48,34],[150,32],[166,24],[160,10],[142,8]],"t")+K.coils(80,140,26,6,"t",12)+K.ln([[80,20],[68,8],[56,6]],"t",{arrow:1})+K.tx(96,58,"5–6×"),
+   t=>K.hook(40,22)+K.ln([[218,21],[78,21]],"m")+K.coils(47,77,21,6,"t",7)+K.ln([[47,26],[52,33]],"t")+K.cut(56,46)],
+  steps:[["Pass the line through the eye, pull 15–20 cm through, and lay the tag back along the main line to form a loop.","Wrap the tag end 5–6 times around both lines, inside the loop.","Wet it and pull the tag to close the wraps.","Pull the main line so the knot slides down to the eye, then trim."],
+   ["השחילו את החוט דרך העין, משכו 15–20 ס״מ, והניחו את הקצה לאורך החוט הראשי כך שתיווצר לולאה.","לפפו את הקצה 5–6 פעמים סביב שני החוטים, בתוך הלולאה.","הרטיבו ומשכו את הקצה כדי לסגור את הליפופים.","משכו את החוט הראשי כך שהקשר יחליק עד העין, ואז גזמו."],
+   ["أدخل الخيط في العين، واسحب 15–20 سم، ثم ضع الطرف بمحاذاة الخيط الرئيسي لتكوين حلقة.","لُفّ الطرف 5–6 مرات حول الخيطين، داخل الحلقة.","بلّلها واسحب الطرف لإغلاق اللفّات.","اسحب الخيط الرئيسي لتنزلق العقدة حتى العين، ثم قصّ."]]},
+ duni:{n:["Double uni knot","קשר יוני כפול","عقدة يوني المزدوجة"],cap:["1","2–3","4"],
+  use:["Joins two lines – braid to leader, or main line to a shock leader.","מחבר שני חוטים – קלוע למוביל, או חוט ראשי לחוט הלם.","تربط خيطين – المجدول بالخيط السفلي، أو الخيط الرئيسي بخيط الصدمة."],
+  pics:[t=>K.ln([[218,30],[120,30],[40,30]],"m")+K.ln([[2,42],[100,42],[180,42]],"o")+K.tx(94,62,"↔ 20"),
+   t=>K.ln([[218,30],[40,32]],"m")+K.ln([[2,40],[180,38]],"o")+K.coils(50,90,35,5,"m",11)+K.coils(130,170,35,5,"o",11)+K.ln([[48,42],[38,54],[28,56]],"m")+K.ln([[172,28],[182,16],[192,14]],"o")+K.tx(58,66,"5–6×")+K.tx(138,66,"5–6×"),
+   t=>K.ln([[218,33],[126,33]],"m")+K.ln([[2,36],[92,36]],"o")+K.coils(92,109,34,5,"m",7)+K.coils(109,126,34,5,"o",7)+K.ln([[92,40],[88,48]],"m")+K.ln([[126,28],[130,20]],"o")+K.cut(100,62)],
+  steps:[["Overlap the ends of the two lines by about 20 cm.","With one end, tie a uni knot around the other line: 5–6 wraps (8–10 for braid).","Tie the same knot with the other end around the first line.","Wet both knots, pull each tag, then pull the two main lines so the knots slide together. Trim."],
+   ["הניחו את קצות שני החוטים זה על זה לאורך כ־20 ס״מ.","עם קצה אחד קשרו קשר יוני סביב החוט השני: 5–6 ליפופים (8–10 לחוט קלוע).","קשרו את אותו קשר עם הקצה השני סביב החוט הראשון.","הרטיבו את שני הקשרים, משכו כל קצה, ואז משכו את שני החוטים הראשיים כך שהקשרים יחליקו זה אל זה. גזמו."],
+   ["ضع طرفي الخيطين فوق بعضهما بطول نحو 20 سم.","بأحد الطرفين اربط عقدة يوني حول الخيط الآخر: 5–6 لفّات (8–10 للخيط المجدول).","اربط العقدة نفسها بالطرف الآخر حول الخيط الأول.","بلّل العقدتين، واسحب كل طرف، ثم اسحب الخيطين الرئيسيين لتنزلق العقدتان نحو بعضهما. قصّ الأطراف."]]},
+ dropper:{n:["Dropper loop","לולאת זרוע (דרופר)","عقدة الفرع (دروبر)"],cap:["1","2–3","4"],
+  use:["Makes a loop that sticks out from the line – for the hooks on the two-hook surf rig.","יוצר לולאה שבולטת מהחוט – לקרסים בחכת החוף עם שני קרסים.","تصنع حلقة بارزة من الخيط – لصنانير عُدّة الشاطئ بصنارتين."],
+  pics:[t=>K.ln([[2,62],[86,62],[112,42],[122,20],[110,8],[96,20],[104,42],[130,62],[218,62]],"m"),
+   t=>K.ln([[2,62],[70,62]],"m")+K.ln([[150,62],[218,62]],"m")+K.twist(70,104,62,4,5,"m")+K.twist(116,150,62,4,5,"m")+K.ln([[104,58],[98,36],[110,12],[122,36],[116,58]],"m")+K.ln([[110,22],[109,42],[110,60]],"t",{arrow:1,dash:1})+K.tx(74,86,"6–8×"),
+   t=>K.ln([[2,62],[98,62]],"m")+K.ln([[122,62],[218,62]],"m")+K.twist(98,122,62,4,4,"m")+K.ln([[106,58],[100,38],[110,20],[120,38],[114,58]],"m")+K.tx(126,26,"🪝")],
+  steps:[["Make a loop in the line where you want the hook.","Twist the loop around itself 6–8 times, keeping a small opening in the middle of the twists.","Push the bottom of the loop through that middle opening.","Hold the loop (a pen helps) and pull both ends of the line slowly until the twists close and the loop stands out."],
+   ["צרו לולאה בחוט במקום שבו תרצו את הקרס.","סובבו את הלולאה סביב עצמה 6–8 פעמים, והשאירו פתח קטן באמצע הסיבובים.","דחפו את תחתית הלולאה דרך הפתח האמצעי.","החזיקו את הלולאה (עט עוזר) ומשכו לאט את שני קצות החוט עד שהסיבובים נסגרים והלולאה בולטת החוצה."],
+   ["اصنع حلقة في الخيط حيث تريد الصنارة.","لُفّ الحلقة حول نفسها 6–8 مرات، مع ترك فتحة صغيرة في منتصف اللفّات.","ادفع أسفل الحلقة عبر الفتحة الوسطى.","أمسك الحلقة (القلم يساعد) واسحب طرفي الخيط ببطء حتى تنغلق اللفّات وتبرز الحلقة."]]}};
+
+const RIG_KNOT={float:"uni",bottom:"clinch",surf:"dropper",lure:"palomar",live:"uni"};
+const T6={
+en:{knotsT:"Knots",kMain:"Main line",kTag:"Tag end",kOther:"Second line",stepL:"Step",knotL:"Knot",cm:"cm",kTip:"Always wet a knot before tightening – friction weakens dry line. Leave 2–3 mm of tag when you trim."},
+he:{knotsT:"קשרים",kMain:"חוט ראשי",kTag:"קצה החוט",kOther:"חוט שני",stepL:"שלב",knotL:"קשר",cm:"ס״מ",kTip:"תמיד הרטיבו את הקשר לפני ההידוק – חיכוך מחליש חוט יבש. השאירו 2–3 מ״מ מהקצה כשאתם גוזמים."},
+ar:{knotsT:"العُقد",kMain:"الخيط الرئيسي",kTag:"طرف الخيط",kOther:"الخيط الثاني",stepL:"خطوة",knotL:"العقدة",cm:"سم",kTip:"بلّل العقدة دائمًا قبل الشدّ – الاحتكاك يُضعف الخيط الجاف. اترك 2–3 مم من الطرف عند القص."}};
+Object.keys(T6).forEach(l=>Object.assign(T[l],T6[l]));
 
 // ================= state & helpers =================
 const TZ="Asia/Jerusalem";
@@ -889,13 +959,13 @@ function render(){
  renderSci();renderInstall();
  if(!LOADED){$("upd").textContent="";document.body.dataset.tab="";$("tabbar").hidden=true;renderOffline();return}
  document.body.dataset.tab=S.tab;renderTabbar();
- $("upd").textContent=`${tx().upd}: ${fmtDT(new Date(LOADED.at))}`;
+ $("upd").textContent=`${tx().upd}: ${fmtDT(new Date(LOADED.at))} · v${APP_VER}`;
  LEARN=learnStats();
  if(!D[S.spot]||!spotById(S.spot))S.spot=Object.keys(D).find(k=>spotById(k))||SPOTS[0].id;
  const spot=spotById(S.spot),d=D[spot.id],i=S.sel;
  const R={};allSpots().forEach(s=>{if(D[s.id])R[s.id]=evalAt(s,i)});
  renderMap(R);renderScore(spot,R[spot.id]);renderTimeline(spot);
- renderMoon(i);renderTide(spot,d,i);renderWind(spot,d,i);renderPres(d,i);renderWaves(d,i);renderClar(spot,i);renderFish(spot,d,i,R[spot.id]);renderLog();renderMapTools();renderSpotSel();if(STATIC_LANG!==S.lang){renderRigs();renderRules();renderFishGuide();STATIC_LANG=S.lang}
+ renderMoon(i);renderTide(spot,d,i);renderWind(spot,d,i);renderPres(d,i);renderWaves(d,i);renderClar(spot,i);renderFish(spot,d,i,R[spot.id]);renderLog();renderMapTools();renderSpotSel();if(STATIC_LANG!==S.lang){renderRigs();renderKnots();renderRules();renderFishGuide();STATIC_LANG=S.lang}
 }
 function renderMap(R){
  const X=lon=>(lon-34.45)*.845*230,Y=lat=>(33.15-lat)*230;
@@ -1218,7 +1288,7 @@ function rigSVG(id){
   y+=h});
  return `<svg viewBox="0 0 380 ${y+10}" role="img" aria-label="${esc(r.n[LI[S.lang]])}">${b}${lb}</svg>`}
 function renderRigs(){const t=tx(),L=LI[S.lang],sep=S.lang==="ar"?"، ":", ";
- $("rigPanel").innerHTML=`<h2>🪝 ${t.rigsT}</h2>`+Object.entries(RIGS).map(([id,r])=>`<details class="rig" id="rig-${id}"><summary>${esc(r.n[L])}</summary>${rigSVG(id)}<ol>${r.steps[L].map(x=>`<li>${esc(x)}</li>`).join("")}</ol><p class="small">${t.rigFor}: ${esc(FISH.filter(f=>f.rig===id).map(f=>f.n[L]).join(sep))}</p></details>`).join("")+`<p class="small" style="margin-top:8px">${t.rigNote}</p>`}
+ $("rigPanel").innerHTML=`<h2>🪝 ${t.rigsT}</h2>`+Object.entries(RIGS).map(([id,r])=>`<details class="rig" id="rig-${id}"><summary>${esc(r.n[L])}</summary>${rigSVG(id)}<ol>${r.steps[L].map(x=>`<li>${esc(x)}</li>`).join("")}</ol><p class="small">${t.rigFor}: ${esc(FISH.filter(f=>f.rig===id).map(f=>f.n[L]).join(sep))}</p><p class="small">🪢 ${t.knotL}: <button class="linkbtn" data-knot="${RIG_KNOT[id]}">${esc(KNOTS[RIG_KNOT[id]].n[L])}</button></p></details>`).join("")+`<p class="small" style="margin-top:8px">${t.rigNote}</p>`}
 function renderRules(){const t=tx(),L=LI[S.lang];
  $("rulesPanel").innerHTML=`<h2>⚖️ ${t.rulesT}</h2><div class="rules"><ul>${t.rules.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
  <h3 style="font-size:.95rem;margin:14px 0 6px">${t.sizesT}</h3><table class="tbl">${SIZES.map(r=>`<tr><td>${esc(r.n[L]||r.n[0])}<br><i>${esc(r.sci)}</i></td><td><span class="n">${r.min} cm</span></td></tr>`).join("")}</table>
@@ -1252,41 +1322,58 @@ function renderInstall(){const c=$("installCard");if(!c)return;
 function renderTabbar(){const ic=["📊","🗺️","📒","📘"],ids=["today","map","log","guide"];
  const tb=$("tabbar");tb.hidden=false;tb.innerHTML=ids.map((id,k)=>`<button role="tab" data-tab-btn="${id}" aria-selected="${S.tab===id}"><span aria-hidden="true">${ic[k]}</span>${esc(tx().tabs[k])}</button>`).join("")}
 function showTab(t){S.tab=t;ss("sdp-tab",t);if(LOADED)document.body.dataset.tab=t;renderTabbar();window.scrollTo(0,0);
+ if(t==="guide"&&Object.values(PSTAT).includes("err")){Object.keys(PSTAT).forEach(k=>{if(PSTAT[k]==="err"){delete PSTAT[k];delete PMEM[k]}});fillPhotos()}
  if(t==="map"&&LM)setTimeout(()=>{LM.invalidateSize();if(!LMfit){LM.fitBounds([[31.62,34.5],[33.08,35.12]]);LMfit=true}},60)}
 function renderSpotSel(){$("spotSelL").textContent=tx().beachL;
  $("spotSel").innerHTML=allSpots().filter(s=>D[s.id]).map(s=>`<option value="${esc(s.id)}"${s.id===S.spot?" selected":""}>${esc(nm(s))}</option>`).join("")}
 function renderFishGuide(){const t=tx(),L=LI[S.lang];
- $("fishGuide").innerHTML=`<h2>🐟 ${t.fishGuideT}</h2><p class="small">${t.drawNote}</p>`+FISH.map(f=>`<div class="fg2"><figure class="photo" data-photo="${f.sci}" hidden></figure><div class="pic marks">${fishSVG(f.sci,300)}</div><p class="marksL">${t.keyMarks}</p>
+ $("fishGuide").innerHTML=`<h2>🐟 ${t.fishGuideT}</h2><p class="small">${t.drawNote}</p><p class="small" id="photoStatus"></p>`+FISH.map(f=>`<div class="fg2"><figure class="photo" data-photo="${f.sci}" hidden></figure><div class="pic marks">${fishSVG(f.sci,300)}</div><p class="marksL">${t.keyMarks}</p>
   <h3>${esc(f.n[L])} <i>${esc(f.sci)}</i></h3><p class="id">🔎 ${esc(FID[f.sci][L])}</p>
   <div class="small">🎣 ${t.bait}: ${esc(f.b[L])}</div>
   <div class="small">📏 ${esc(f.min?t.minSize(f.min):t.noMin)} · <button class="linkbtn" data-rig="${f.rig}">🪝 ${esc(RIGS[f.rig].n[L])}</button> · <a href="https://en.wikipedia.org/wiki/${WIKI[f.sci]}" target="_blank" rel="noopener">${t.photosLink}</a></div>
   ${f.note?`<div class="note">⚠ ${esc(f.note[L])}</div>`:""}</div>`).join("");fillPhotos()}
 
 // ================= real fish photos (Wikimedia Commons, free licences only) =================
-const FREE_LIC=/^(cc0\b|cc[ -]?by(-sa)?(\s|$)|public domain|pd\b)/i,PCK="sdp-photos";
+const FREE_LIC=/^(cc0\b|cc[ -]?by(-sa)?(\s|$)|public domain|pd\b)/i,PCK="sdp-photos3",APP_VER="7";
 const escA=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const PMEM={};
+const PSTAT={};
+function freeLicence(lic){const n=lic.toLowerCase().replace(/[-_]/g," ").replace(/\s+/g," ").trim();
+ return !/\b(nc|nd)\b/.test(n)&&/^(cc0|cc zero|cc by|public domain|pd\b|pdm)/.test(n)}
 async function photoMeta(sci){
  if(PMEM[sci]!==undefined)return PMEM[sci];
- const c=ls(PCK,{}),hit=c[sci];if(hit&&Date.now()-hit.at<30*864e5)return PMEM[sci]=hit.ok?hit:null;
- let res={at:Date.now(),ok:false};
+ const c=ls(PCK,{}),hit=c[sci];
+ if(hit&&Date.now()-hit.at<(hit.ok?30:1)*864e5){PSTAT[sci]=hit.ok?"ok":"none";return PMEM[sci]=hit.ok?hit:null}
+ let name=null,res={at:Date.now(),ok:false};const t=PHOTO_TITLE[sci];
  try{
-  const a=await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=name&titles=${encodeURIComponent(PHOTO_TITLE[sci])}`);
-  const pg=Object.values((a.query&&a.query.pages)||{})[0],name=pg&&pg.pageimage;
+  try{const a=await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=name&titles=${encodeURIComponent(t)}`);
+   const pg=Object.values((a.query&&a.query.pages)||{})[0];name=(pg&&pg.pageimage)||null}catch(e){console.warn("pageimages",sci,e)}
+  if(!name){const r=await getJSON(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`);
+   const u=(r.originalimage&&r.originalimage.source)||(r.thumbnail&&r.thumbnail.source)||"";
+   const m=u.match(/\/commons\/(?:thumb\/)?[0-9a-f]\/[0-9a-f]{2}\/([^/]+)/);if(m)name=decodeURIComponent(m[1])}
   if(name){
    const b=await getJSON(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&titles=${encodeURIComponent("File:"+name)}`);
    const q=Object.values((b.query&&b.query.pages)||{})[0],ii=q&&q.imageinfo&&q.imageinfo[0];
    if(ii&&ii.thumburl){const md=ii.extmetadata||{},lic=((md.LicenseShortName&&md.LicenseShortName.value)||"").trim();
     const src=ii.thumburl,page=ii.descriptionurl||"",licUrl=((md.LicenseUrl&&md.LicenseUrl.value)||"").trim();
-    if(FREE_LIC.test(lic)&&/^https:\/\/upload\.wikimedia\.org\//.test(src)&&/^https:\/\/commons\.wikimedia\.org\//.test(page)){
+    if(freeLicence(lic)&&/^https:\/\/upload\.wikimedia\.org\//.test(src)&&/^https:\/\/commons\.wikimedia\.org\//.test(page)){
      const by=(new DOMParser().parseFromString((md.Artist&&md.Artist.value)||"","text/html").body.textContent||"").replace(/\s+/g," ").trim().slice(0,80);
-     res={at:Date.now(),ok:true,src,page,lic,licUrl:/^https?:\/\//.test(licUrl)?licUrl:"",by:by||"Wikimedia Commons"}}}}
- }catch(e){return null}
- c[sci]=res;ss(PCK,c);return PMEM[sci]=res.ok?res:null;
+     res={at:Date.now(),ok:true,src,page,lic,licUrl:/^https?:\/\//.test(licUrl)?licUrl:"",by:by||"Wikimedia Commons"}}
+    else console.warn("photo skipped",sci,lic)}}
+ }catch(e){console.warn("photo error",sci,e);PSTAT[sci]="err";return null}
+ PSTAT[sci]=res.ok?"ok":"none";c[sci]=res;ss(PCK,c);return PMEM[sci]=res.ok?res:null;
 }
-function fillPhotos(){document.querySelectorAll("figure[data-photo]").forEach(async fg=>{const m=await photoMeta(fg.dataset.photo);if(!m||!fg.isConnected)return;
+async function fillPhotos(){const figs=[...document.querySelectorAll("figure[data-photo]")];
+ await Promise.all(figs.map(async fg=>{const m=await photoMeta(fg.dataset.photo);if(!m||!fg.isConnected)return;
  const t=tx();fg.innerHTML=`<img src="${escA(m.src)}" alt="${escA(fg.dataset.photo)}" loading="lazy"><figcaption>${esc(t.photoBy)}: <a href="${escA(m.page)}" target="_blank" rel="noopener">${esc(m.by)}</a> · ${m.licUrl?`<a href="${escA(m.licUrl)}" target="_blank" rel="noopener">${esc(m.lic)}</a>`:esc(m.lic)} · Wikimedia Commons</figcaption>`;
- fg.querySelector("img").onerror=()=>{fg.hidden=true};fg.hidden=false})}
+ fg.querySelector("img").onerror=()=>{fg.hidden=true};fg.hidden=false}));
+ const st=$("photoStatus");if(st){const v=FISH.map(f=>PSTAT[f.sci]);st.textContent=v.includes("err")?tx().photoErr:tx().photoCount(v.filter(x=>x==="ok").length,FISH.length)}}
+
+function renderKnots(){const t=tx(),L=LI[S.lang];
+ $("knotPanel").innerHTML=`<h2>🪢 ${t.knotsT}</h2><div class="legend"><span style="--c:var(--sea)">${t.kMain}</span><span style="--c:#E67E22">${t.kTag}</span><span style="--c:#8E5BD6">${t.kOther}</span></div>`+
+  Object.entries(KNOTS).map(([id,k])=>`<details class="rig knot" id="knot-${id}"><summary>${esc(k.n[L])}</summary><p class="small">${esc(k.use[L])}</p>
+  <div class="kpics">${k.pics.map((f,i)=>`<figure><svg viewBox="0 0 220 92" class="ksvg" role="img" aria-label="${esc(k.n[L])} ${t.stepL} ${k.cap[i]}">${f(t)}</svg><figcaption>${t.stepL} ${esc(k.cap[i])}</figcaption></figure>`).join("")}</div>
+  <ol>${k.steps[L].map(x=>`<li>${esc(x)}</li>`).join("")}</ol></details>`).join("")+`<p class="small" style="margin-top:8px">💧 ${t.kTip}</p>`}
 
 // ================= events =================
 document.querySelector(".lang").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.lang=b.dataset.l;ss("sdp-lang",S.lang);
@@ -1299,6 +1386,7 @@ document.addEventListener("click",e=>{
  const shr=q("[data-share]");if(shr){shareCatch(shr.dataset.share);return}
  const th=q("img[data-ph]");if(th){openViewer(th.dataset.ph);return}
  if(q("#shareScore")){shareScore();return}
+ const kn=q("[data-knot]");if(kn){showTab("guide");const kd=$("knot-"+kn.dataset.knot);if(kd){kd.open=true;setTimeout(()=>kd.scrollIntoView({behavior:"smooth",block:"start"}),50)}return}
  const rg=q("[data-rig]");if(rg){showTab("guide");const dd=$("rig-"+rg.dataset.rig);if(dd){dd.open=true;dd.scrollIntoView({behavior:"smooth",block:"start"})}return}
  if(q("#instBtn")&&deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;renderInstall()});return}
  if(q("#instX")){ss("sdp-inst",true);renderInstall();return}
@@ -1327,7 +1415,7 @@ document.addEventListener("click",e=>{
 $("backNow").onclick=()=>{S.sel=NOW;render()};
 $("refresh").onclick=()=>loadAll();
 render();loadAll();
-if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
+if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").then(r=>r.update()).catch(()=>{});
 </script>
 </body>
 </html>
