@@ -188,6 +188,12 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid var(
 .fg2 .id{font-size:.92rem;margin:6px 0}
 .fg2 .small{margin-top:2px}
 .fg2 .note{font-size:.84rem;color:var(--red);margin-top:4px}
+.fg2 figure.photo{margin:0 0 8px}
+.fg2 figure.photo img{width:100%;height:220px;object-fit:cover;border-radius:12px;display:block;background:var(--chip)}
+.fg2 figcaption{font-size:.72rem;color:var(--muted);margin-top:4px;line-height:1.35}
+.fg2 figcaption a{color:var(--muted)}
+.fg2 .marks{max-width:220px;margin:0 auto}
+.fg2 .marksL{text-align:center;font-size:.76rem;color:var(--muted);margin:0 0 6px}
 .fg2 a{color:var(--sea)}
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:flex;justify-content:center;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
 .tabbar button{flex:1;max-width:160px;font:inherit;font-size:.78rem;font-weight:600;background:none;border:0;color:var(--muted);padding:8px 2px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:58px}
@@ -641,6 +647,13 @@ en:{tabs:["Today","Map","Log","Guide"],fishGuideT:"Fish guide",photosLink:"Real 
 he:{tabs:["היום","מפה","יומן","מדריך"],fishGuideT:"מדריך דגים",photosLink:"תמונות אמיתיות (ויקיפדיה)",drawNote:"הציורים מראים את הסימנים שצריך לחפש – בדקו גם בתמונות האמיתיות.",beachL:"חוף",showFc:n=>`📊 תחזית ל${n}`},
 ar:{tabs:["اليوم","الخريطة","السجل","الدليل"],fishGuideT:"دليل الأسماك",photosLink:"صور حقيقية (ويكيبيديا)",drawNote:"الرسومات تُظهر العلامات التي يجب البحث عنها – تأكد أيضًا من الصور الحقيقية.",beachL:"الشاطئ",showFc:n=>`📊 توقعات ${n}`}};
 Object.keys(T4).forEach(l=>Object.assign(T[l],T4[l]));
+const T5={
+en:{keyMarks:"Key marks to look for",photoBy:"Photo",photosLink:"More photos (Wikipedia)",drawNote:"Photos come from Wikimedia Commons under free licences, credited to each photographer. The drawing under each photo shows the marks to look for."},
+he:{keyMarks:"סימנים לזיהוי",photoBy:"צילום",photosLink:"עוד תמונות (ויקיפדיה)",drawNote:"התמונות מוויקישיתוף ברישיונות חופשיים, עם קרדיט לכל צלם. הציור מתחת לכל תמונה מראה את הסימנים לזיהוי."},
+ar:{keyMarks:"علامات التعرّف",photoBy:"تصوير",photosLink:"صور أخرى (ويكيبيديا)",drawNote:"الصور من ويكيميديا كومنز برخص حرّة، مع ذكر اسم كل مصوّر. الرسم تحت كل صورة يُظهر علامات التعرّف."}};
+Object.keys(T5).forEach(l=>Object.assign(T[l],T5[l]));
+// Wikipedia article whose lead photo is used for each fish; licence is checked on Wikimedia Commons before showing it
+const PHOTO_TITLE={"Siganus rivulatus":"Siganus_rivulatus","Diplodus sargus":"Diplodus_sargus","Sillago sihama":"Sillago_sihama","Mugil cephalus":"Mugil_cephalus","Lithognathus mormyrus":"Lithognathus_mormyrus","Sparus aurata":"Sparus_aurata","Dicentrarchus labrax":"European_seabass","Pomatomus saltatrix":"Bluefish","Lichia amia":"Lichia_amia","Sphyraena spp.":"Sphyraena_sphyraena"};
 
 // ================= state & helpers =================
 const TZ="Asia/Jerusalem";
@@ -1243,11 +1256,37 @@ function showTab(t){S.tab=t;ss("sdp-tab",t);if(LOADED)document.body.dataset.tab=
 function renderSpotSel(){$("spotSelL").textContent=tx().beachL;
  $("spotSel").innerHTML=allSpots().filter(s=>D[s.id]).map(s=>`<option value="${esc(s.id)}"${s.id===S.spot?" selected":""}>${esc(nm(s))}</option>`).join("")}
 function renderFishGuide(){const t=tx(),L=LI[S.lang];
- $("fishGuide").innerHTML=`<h2>🐟 ${t.fishGuideT}</h2><p class="small">${t.drawNote}</p>`+FISH.map(f=>`<div class="fg2"><div class="pic">${fishSVG(f.sci,300)}</div>
+ $("fishGuide").innerHTML=`<h2>🐟 ${t.fishGuideT}</h2><p class="small">${t.drawNote}</p>`+FISH.map(f=>`<div class="fg2"><figure class="photo" data-photo="${f.sci}" hidden></figure><div class="pic marks">${fishSVG(f.sci,300)}</div><p class="marksL">${t.keyMarks}</p>
   <h3>${esc(f.n[L])} <i>${esc(f.sci)}</i></h3><p class="id">🔎 ${esc(FID[f.sci][L])}</p>
   <div class="small">🎣 ${t.bait}: ${esc(f.b[L])}</div>
   <div class="small">📏 ${esc(f.min?t.minSize(f.min):t.noMin)} · <button class="linkbtn" data-rig="${f.rig}">🪝 ${esc(RIGS[f.rig].n[L])}</button> · <a href="https://en.wikipedia.org/wiki/${WIKI[f.sci]}" target="_blank" rel="noopener">${t.photosLink}</a></div>
-  ${f.note?`<div class="note">⚠ ${esc(f.note[L])}</div>`:""}</div>`).join("")}
+  ${f.note?`<div class="note">⚠ ${esc(f.note[L])}</div>`:""}</div>`).join("");fillPhotos()}
+
+// ================= real fish photos (Wikimedia Commons, free licences only) =================
+const FREE_LIC=/^(cc0\b|cc[ -]?by(-sa)?(\s|$)|public domain|pd\b)/i,PCK="sdp-photos";
+const escA=v=>String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const PMEM={};
+async function photoMeta(sci){
+ if(PMEM[sci]!==undefined)return PMEM[sci];
+ const c=ls(PCK,{}),hit=c[sci];if(hit&&Date.now()-hit.at<30*864e5)return PMEM[sci]=hit.ok?hit:null;
+ let res={at:Date.now(),ok:false};
+ try{
+  const a=await getJSON(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=name&titles=${encodeURIComponent(PHOTO_TITLE[sci])}`);
+  const pg=Object.values((a.query&&a.query.pages)||{})[0],name=pg&&pg.pageimage;
+  if(name){
+   const b=await getJSON(`https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&titles=${encodeURIComponent("File:"+name)}`);
+   const q=Object.values((b.query&&b.query.pages)||{})[0],ii=q&&q.imageinfo&&q.imageinfo[0];
+   if(ii&&ii.thumburl){const md=ii.extmetadata||{},lic=((md.LicenseShortName&&md.LicenseShortName.value)||"").trim();
+    const src=ii.thumburl,page=ii.descriptionurl||"",licUrl=((md.LicenseUrl&&md.LicenseUrl.value)||"").trim();
+    if(FREE_LIC.test(lic)&&/^https:\/\/upload\.wikimedia\.org\//.test(src)&&/^https:\/\/commons\.wikimedia\.org\//.test(page)){
+     const by=(new DOMParser().parseFromString((md.Artist&&md.Artist.value)||"","text/html").body.textContent||"").replace(/\s+/g," ").trim().slice(0,80);
+     res={at:Date.now(),ok:true,src,page,lic,licUrl:/^https?:\/\//.test(licUrl)?licUrl:"",by:by||"Wikimedia Commons"}}}}
+ }catch(e){return null}
+ c[sci]=res;ss(PCK,c);return PMEM[sci]=res.ok?res:null;
+}
+function fillPhotos(){document.querySelectorAll("figure[data-photo]").forEach(async fg=>{const m=await photoMeta(fg.dataset.photo);if(!m||!fg.isConnected)return;
+ const t=tx();fg.innerHTML=`<img src="${escA(m.src)}" alt="${escA(fg.dataset.photo)}" loading="lazy"><figcaption>${esc(t.photoBy)}: <a href="${escA(m.page)}" target="_blank" rel="noopener">${esc(m.by)}</a> · ${m.licUrl?`<a href="${escA(m.licUrl)}" target="_blank" rel="noopener">${esc(m.lic)}</a>`:esc(m.lic)} · Wikimedia Commons</figcaption>`;
+ fg.querySelector("img").onerror=()=>{fg.hidden=true};fg.hidden=false})}
 
 // ================= events =================
 document.querySelector(".lang").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;S.lang=b.dataset.l;ss("sdp-lang",S.lang);
